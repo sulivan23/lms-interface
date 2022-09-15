@@ -1,13 +1,13 @@
-import React, { Component, useEffect, useState } from "react";
+import React, { Component } from "react";
 
 import { Link, NavLink } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 import "../../../js/js/scripts";
 import "../../../js/js/stisla";
 import axios from "axios";
-import { getUser } from "../../../helpers/Helper";
+import { getUser, handleCookie } from "../../../api/Users";
 import Cookies from "js-cookie";
-import $ from 'jquery';
+import jwt_decode from "jwt-decode";
+import { AuthLogout } from "../../../api/Auth";
 
 // import SidebarGlobal from "../../../js/SidebarGlobal";
 
@@ -25,15 +25,39 @@ class SideBar extends Component {
     this.setState({ menuOpen : this.state.menuOpen == key ? null : key });
   }
 
+  logout = (userId) => {
+    AuthLogout(userId);
+    window.location.href="/";
+  }
+
   async componentDidMount() {
-    const user = await getUser(Cookies.get('userId'));
-      const userData = user.userData;
+      const user = await getUser(Cookies.get('userId'));
+      if(user.newToken.is_error == true){
+        if(user.newToken.message == 'Bearer token kosong' 
+            || user.newToken.message == 'User not found'
+            || user.newToken.message == 'Error has occured') 
+            window.location.href="/";
+            Object.keys(Cookies.get()).forEach(function(cookieName) {
+              var neededAttributes = {
+
+              };
+              Cookies.remove(cookieName, neededAttributes);
+            });
+      }
+      const decode = jwt_decode(user.newToken.data.access_token);
+      if(user.userData.is_error == true){
+        if(user.userData.message == 'User tidak ada'){
+          window.location.reload();
+        }
+      }
+      const userData = user.userData.data;
+      await handleCookie(decode.userId, decode.name, decode.email, decode.roles);
       axios.defaults.withCredentials = true;
       const rolesResponse = await axios.post('http://localhost:3001/roles', {
           roles : userData.role.roles
       }, {
           headers : {
-              'Authorization' : `Bearer ${user.newToken}`
+              'Authorization' : `Bearer ${user.newToken.data.access_token}`
           }
       });
       let sidebarMenu = [];
@@ -65,7 +89,6 @@ class SideBar extends Component {
   }
 
   render () {
-    console.log(this.state.menuOpen);
     return (
       <div className="main-sidebar">
         <aside id="sidebar-wrapper">
@@ -285,7 +308,7 @@ class SideBar extends Component {
                       }}
                       exact
                       to={menu.url}
-                      onClick={() => this.toggleHandle(null)}
+                      onClick={() => menu.name == 'Logout' ? this.logout(Cookies.get('userId')) : this.toggleHandle(null)}
                     >
                       <i className={menu.icon} /> <span> {menu.name} </span>
                     </NavLink>{" "}

@@ -1,3 +1,5 @@
+import Cookies from "js-cookie";
+
 export const searchResultData = [
   {
     headerTitle: "Histories",
@@ -155,7 +157,7 @@ export const NotifyData = {
 };
 
 export const userDetail = {
-  userName: "Ujang Maman",
+  userName: Cookies.get('name'),
   userImg: "../../../assets/img/avatar/avatar-1.png",
   logTime: "5 min",
   logoutIcon: "fas fa-sign-out-alt",

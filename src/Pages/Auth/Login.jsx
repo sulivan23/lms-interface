@@ -1,45 +1,50 @@
-import React, { useState } from "react";
-import axios from "axios";
-import iziToast from "izitoast";
-import { getCookie, handleMessage } from "../../helpers/Helper";
-import { useHistory } from "react-router";
+import React, { Component, useState } from "react";
+import { handleMessage } from "../../api/Helper";
+import { AuthLogin } from "../../api/Auth";
+// import { useHistory } from "react-router";
 import Cookies from "js-cookie";
+import iziToast from "izitoast";
+import { useHistory } from "react-router";
 
-const Login = () => {
+export const Login = () =>  {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const history = useHistory();
 
-  const Auth = async(e) => {
-    e.preventDefault();
+  const handleLogin  = async(e) => {
     try {
-      axios.defaults.withCredentials = true;
-      await axios.post('http://localhost:3001/auth/login', {
-        email : email,
-        password : password
-      }).then((res) => {
-        var err = res.data.is_error;
+        e.preventDefault();
+        setLoading(true);
+        const login = await AuthLogin(`${email}`, `${password}`);
+        var err = login.data.is_error;
         if(err == true) {
-          return iziToast.warning({
-            title: "Warning!",
-            message: handleMessage(res.data.message),
-            position: "topRight",
-          });
+          setTimeout(() => {
+            setLoading(false);
+            return iziToast.warning({
+              title: "Warning!",
+              message: handleMessage(login.data.message),
+              position: "topRight",
+            });
+          }, 1000)
+        }else{
+          Cookies.set('userId', login.data.data.user_id);
+          Cookies.set('name', login.data.data.name);
+          Cookies.set('email', login.data.data.email);
+          Cookies.set('role', login.data.data.role);
+          history.push('/dashboard');
         }
-        Cookies.set('userId', res.data.data.user_id);
-        history.push('/dashboard');
-      })
-    } catch(err) {
-      console.log(err);
-      return iziToast.error({
-        title: "Error!",
-        message: err.message,
-        position: "topRight",
-      });
-    }
+      } catch(err) {
+        console.log(err);
+        return iziToast.error({
+          title: "Error!",
+          message: err.message,
+          position: "topRight",
+        });
+      }
   }
-  
+
   return (
     <div id="app">
       <section className="section">
@@ -56,7 +61,7 @@ const Login = () => {
                 </div>
 
                 <div className="card-body">
-                  <form onSubmit={Auth}>
+                  <form>
                     <div className="form-group">
                       <label htmlFor="email">Email</label>
                       <input
@@ -99,8 +104,9 @@ const Login = () => {
                         type="submit"
                         className="btn btn-primary btn-lg btn-block"
                         tabIndex="4"
+                        onClick={handleLogin}
                       >
-                        Login
+                        {loading == true ? 'Loading...' : 'Login'}
                       </button>
                     </div>
                   </form>
@@ -114,7 +120,7 @@ const Login = () => {
         </div>
       </section>
     </div>
-  );
+  ); 
 }
 
 export default Login;
