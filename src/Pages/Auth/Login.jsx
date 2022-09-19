@@ -33,7 +33,7 @@ export const Login = () =>  {
           Cookies.set('name', login.data.data.name);
           Cookies.set('email', login.data.data.email);
           Cookies.set('role', login.data.data.role);
-          history.push('/dashboard');
+          history.push('/home/dashboard');
         }
       } catch(err) {
         console.log(err);

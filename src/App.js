@@ -3,7 +3,7 @@ import React from "react";
 import { Switch, Route, Link } from "react-router-dom";
 import { Header, Footer, Sidebar } from "./components/admin";
 import { useLocation } from "react-router-dom";
-import Dashboard from "./Pages/Dashboard/Dashboard";
+import Dashboard from "./Pages/Dashboard/Index";
 import Courses from "./Pages/Courses/Courses";
 import Error404 from "./Pages/Errors/404";
 import Position from "./Pages/Users/Position";
@@ -11,6 +11,10 @@ import Organization from "./Pages/Users/Organization";
 import Users from "./Pages/Users/Index";
 import Lessons from "./Pages/Lessons/Lessons";
 import LessonsForm from "./Pages/Lessons/LessonsForm";
+import Exams from "./Pages/Exams/Index";
+import Quiz from "./Pages/Quiz/Index";
+import ExamQuestions from "./Pages/Exams/ExamQuestions";
+import QuizQuestions from "./Pages/Quiz/QuizQuestions";
 
 const history = React.lazy(() => import('./history'));
 
@@ -20,10 +24,6 @@ function App() {
     let locationSplit = location.split("/");
     let locationParent = locationSplit[1];
     let WithoutRouter = [""];
-
-    const logout = (userId) => {
-      alert(userId);
-    }
 
     return (
         <div className="App">
@@ -46,6 +46,10 @@ function App() {
               <Route path="/home/lessons" exact component={Lessons} />
               <Route path="/home/lessons/:id/:type" exact component={LessonsForm} />
               <Route path="/home/users" exact component={Users} />
+              <Route path="/home/exams" exact component={Exams} />
+              <Route path="/home/exams/:examId/:questionNumber" exact component={ExamQuestions} />
+              <Route path="/home/quiz" exact component={Quiz} />
+              <Route path="/home/quiz/:quizId/:questionNumber" exact component={QuizQuestions} />
               <Route path="*" component={Error404} />
             </Switch>
             </React.Suspense>

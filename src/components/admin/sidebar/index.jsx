@@ -3,15 +3,14 @@ import React, { Component } from "react";
 import { Link, NavLink } from "react-router-dom";
 import "../../../js/js/scripts";
 import "../../../js/js/stisla";
-import axios from "axios";
-import { getUser, handleCookie } from "../../../api/Users";
+import { getListOfMenu } from "../../../api/Users";
 import Cookies from "js-cookie";
-import jwt_decode from "jwt-decode";
 import { AuthLogout } from "../../../api/Auth";
+import { getPersonalInfo } from "../../../api/Helper";
 
 // import SidebarGlobal from "../../../js/SidebarGlobal";
 
-class SideBar extends Component {
+class SideBar extends Component { 
 
   constructor(props){
     super(props);
@@ -31,37 +30,10 @@ class SideBar extends Component {
   }
 
   async componentDidMount() {
-      const user = await getUser(Cookies.get('userId'));
-      if(user.newToken.is_error == true){
-        if(user.newToken.message == 'Bearer token kosong' 
-            || user.newToken.message == 'User not found'
-            || user.newToken.message == 'Error has occured') 
-            window.location.href="/";
-            Object.keys(Cookies.get()).forEach(function(cookieName) {
-              var neededAttributes = {
-
-              };
-              Cookies.remove(cookieName, neededAttributes);
-            });
-      }
-      const decode = jwt_decode(user.newToken.data.access_token);
-      if(user.userData.is_error == true){
-        if(user.userData.message == 'User tidak ada'){
-          window.location.reload();
-        }
-      }
-      const userData = user.userData.data;
-      await handleCookie(decode.userId, decode.name, decode.email, decode.roles);
-      axios.defaults.withCredentials = true;
-      const rolesResponse = await axios.post('http://localhost:3001/roles', {
-          roles : userData.role.roles
-      }, {
-          headers : {
-              'Authorization' : `Bearer ${user.newToken.data.access_token}`
-          }
-      });
+      await getPersonalInfo();
       let sidebarMenu = [];
-      var sidebar = rolesResponse.data.data;
+      const listMenu = await getListOfMenu(Cookies.get('role'));
+      var sidebar = listMenu.data;
       sidebar.forEach((item, index) => {
           let data = {
               menuId : sidebar[index].modul.id,

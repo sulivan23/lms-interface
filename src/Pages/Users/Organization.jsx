@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import $ from "jquery";
 import { createOrganization, deleteOrganization, getOrganization, getOrganizationByCode, updateOrganization } from "../../api/Organization";
 import swal from "sweetalert";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import iziToast from "izitoast";
 import moment from "moment";
+import Cookies from "js-cookie";
+import { getPermission } from "../../api/Users";
 
 class Organization extends Component {
 
@@ -20,12 +22,25 @@ class Organization extends Component {
             organization_code_edit : '',
             titleModal : 'Create Organization',
             type : ['Department', 'Division', 'Board Of Director', 'President Director'],
-            onSubmit : false
+            onSubmit : false,
+            permission : '',
+            accessToken : '',
+            userInfo : {}
         }
     }
 
     async componentDidMount(){
+        await getPersonalInfo();
         await this.getOrganization();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
+        }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             pageLength : 10
         });
@@ -152,9 +167,14 @@ class Organization extends Component {
                             <div className="col-12">
                                 <div className="card">
                                     <div className="card-body">
-                                        <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create Organization
-                                        </button>
+                                        {
+                                            this.state.permission.includes('Create') ? 
+                                                <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                                    &nbsp;Create Organization
+                                                </button> 
+                                            : 
+                                            ''
+                                        }
                                         <div className="table table-responsive">
                                         <table className="table table-striped" id="dataTable">
                                             <thead>
@@ -180,18 +200,28 @@ class Organization extends Component {
                                                                 <td>{ moment(org.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>{ moment(org.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>
-                                                                    <button
-                                                                        className="btn btn-primary w-100 my-2"
-                                                                        onClick={(e) => this.setState({ organization_code_edit : org.organization_code }) }
-                                                                    >
-                                                                        Update
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-danger w-100 my-1 mb-2"
-                                                                        onClick={async(e) => await this.deleteOrganization(org.organization_code) }
-                                                                    >
-                                                                        Delete
-                                                                    </button>
+                                                                    {
+                                                                        this.state.permission.includes('Update') ? 
+                                                                        <button
+                                                                            className="btn btn-primary w-100 my-2"
+                                                                            onClick={(e) => this.setState({ organization_code_edit : org.organization_code }) }
+                                                                        >
+                                                                            Update
+                                                                        </button>
+                                                                        : 
+                                                                        ''
+                                                                    }
+                                                                    {
+                                                                        this.state.permission.includes('Delete') ? 
+                                                                        <button
+                                                                            className="btn btn-danger w-100 my-1 mb-2"
+                                                                            onClick={async(e) => await this.deleteOrganization(org.organization_code) }
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                        : 
+                                                                        ''
+                                                                    }
                                                                 </td>
                                                             </tr>
                                                         )

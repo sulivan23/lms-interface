@@ -1,3 +1,7 @@
+import Cookies from "js-cookie";
+import { getUser, handleCookie } from "./Users";
+import jwt_decode from "jwt-decode";
+
 export const handleMessage = (message) => {
     var msg = message;
     if(Array.isArray(message)){
@@ -48,4 +52,22 @@ export const failMessage = (jqXHR) => {
         msg = 'Uncaught Error.\n' + jqXHR.responseText;
     }
     return msg;
+}
+
+export const getPersonalInfo = async() => {
+    const user = await getUser(Cookies.get('userId'));
+    if(user.is_error == true){
+        if(user.message == 'Unauthorized' 
+          || user.message == 'Token kosong'
+          || user.message == 'User tidak ada'){
+            window.location.href="/";
+            Object.keys(Cookies.get()).forEach(function(cookieName) {
+             Cookies.remove(cookieName, {});
+            });
+          } 
+    }
+    else if(user.is_error == false){
+        await handleCookie(user.data.id, user.data.name, user.data.email, user.data.role.roles);
+        return { user : user.data };
+    }
 }

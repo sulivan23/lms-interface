@@ -3,7 +3,7 @@ import { deleteImgContent, getLessonByCourse, getLessonById, getLessonContentByI
 import $ from "jquery";
 import { createLessonContent, updateLessonContent } from "../../api/Lessons";
 import iziToast from "izitoast";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import { Link } from "react-router-dom";
 
 class LessonsForm extends Component {
@@ -26,6 +26,7 @@ class LessonsForm extends Component {
 
     
     async componentDidMount() {
+      await getPersonalInfo();
         $(".summernote").summernote({
           dialogsInBody: true,
           minHeight: 250,

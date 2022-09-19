@@ -3,7 +3,7 @@ import { deletedCourse, getCourse, getCourseById, updateCourse } from "../../api
 import $ from "jquery";
 import moment from "moment";
 import iziToast from "izitoast";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import swal from "sweetalert";
 import { creteCourse } from "../../api/Courses";
 import Cookies from "js-cookie";
@@ -86,6 +86,7 @@ class CoursesData extends Component {
     }
 
     async componentDidMount() {
+        await getPersonalInfo();
         await this.Loading();
         await this.getData();
         $("#dataTable").DataTable({

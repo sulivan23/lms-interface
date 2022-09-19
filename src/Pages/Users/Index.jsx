@@ -3,10 +3,10 @@ import { getPosition, getRoles, getUsers, getUser, createUser, deleteUser, updat
 import moment from "moment";
 import { Link } from "react-router-dom";
 import iziToast from "izitoast";
-import $ from "jquery";
+import $, { timers } from "jquery";
 import { getOrganization } from "../../api/Organization";
 import swal from "sweetalert";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import Cookies from "js-cookie";
 
 class Users extends Component {
@@ -30,16 +30,23 @@ class Users extends Component {
             userId : '',
             onSubmit : false,
             titleModal : 'Create User',
-            roleAuthority : ['ADM','SPV','HRD'],
-            permission : []
+            permission : [],
+            userInfo : {}
         }
     }
 
     async componentDidMount(){
+        await getPersonalInfo();
         await this.getUsers();
-        if(this.state.roleAuthority.includes(Cookies.get('role')) == false){
-            this.props.history.push('/home/404');
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
         }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             order : [['0', 'desc']],
             pageLength : 10
@@ -118,12 +125,6 @@ class Users extends Component {
         }else{
             users = await getUsers();
         }
-        const permission = await getPermission({
-            role : Cookies.get('role'),
-            type : 'Menu',
-            url : this.props.location.pathname
-        });
-        this.setState({ permission : permission.data.permission.split(', ') });
         const usersData = users.data;
         this.setState({ users : usersData });
     }
@@ -186,7 +187,6 @@ class Users extends Component {
 
     render() {
         const { users, rolesData, position, organization, statusType } = this.state;
-        console.log(this.state.permission);
         return(
             <div className="main-content">
                 <section className="section">
@@ -241,18 +241,28 @@ class Users extends Component {
                                                                 <td>{ moment(user.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>{ moment(user.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>
-                                                                    <button
-                                                                        className="btn btn-primary w-100 my-2"
-                                                                        onClick={(e) => this.setState({ userId : user.id }) }
-                                                                    >
-                                                                        Update
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-danger w-100 my-1 mb-2"
-                                                                        onClick={async(e) => await this.deleteUser(user.id) }
-                                                                    >
-                                                                        Delete
-                                                                    </button>
+                                                                    {
+                                                                        this.state.permission.includes('Update') ? 
+                                                                        <button
+                                                                            className="btn btn-primary w-100 my-2"
+                                                                            onClick={(e) => this.setState({ userId : user.id }) }
+                                                                        >
+                                                                            Update
+                                                                        </button>
+                                                                        :
+                                                                        ''
+                                                                    }
+                                                                    {
+                                                                        this.state.permission.includes('Delete') ? 
+                                                                        <button
+                                                                            className="btn btn-danger w-100 my-1 mb-2"
+                                                                            onClick={async(e) => await this.deleteUser(user.id) }
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                        :
+                                                                        ''
+                                                                    }
                                                                 </td>
                                                             </tr>
                                                         )

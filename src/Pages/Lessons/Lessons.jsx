@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import $ from "jquery";
 import iziToast from "izitoast";
 import swal from "sweetalert";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import moment from "moment";
 import { createLesson, deleteLesson, getLesson, getLessonById, getLessonContentByLesson, updateLesson } from "../../api/Lessons";
 import { Link } from "react-router-dom";
@@ -29,6 +29,7 @@ class Lessons extends Component {
     }
 
     async componentDidMount() {
+        await getPersonalInfo();
         await this.getLesson();
         $("#dataTable").DataTable({
             order : [['1', 'desc']],

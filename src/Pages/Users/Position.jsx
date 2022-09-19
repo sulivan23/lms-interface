@@ -4,7 +4,7 @@ import { createPosition, deletePosition, getPosition, getPositionCode, updatePos
 import $ from "jquery";
 import iziToast from "izitoast";
 import swal from "sweetalert";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import moment from "moment";
 
 
@@ -24,6 +24,7 @@ class Position extends Component {
     }
 
     async componentDidMount() {
+        await getPersonalInfo();
         await this.getPosition();
         $("#dataTable").DataTable({
             pageLength : 10
@@ -150,7 +151,7 @@ class Position extends Component {
                             <div className="col-12">
                                 <div className="card">
                                     <div className="card-body">
-                                    <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                        <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
                                                 &nbsp;Create User
                                         </button>
                                         <div className="table table-responsive">

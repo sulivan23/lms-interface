@@ -2,36 +2,35 @@ import React, { Component } from "react";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { getCourse } from "../../api/Courses";
-import { createExam, deleteExam, getExamById, getExams, updateExam } from "../../api/Exams";
 import $ from "jquery";
 import swal from "sweetalert";
 import iziToast from "izitoast";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import Cookies from "js-cookie";
+import { createQuiz, deleteQuiz, getQuiz, getQuizById, updateQuiz } from "../../api/Quiz";
 
-class Exams extends Component {
+class Quiz extends Component {
 
     constructor(props){
         super(props);
         this.state = {
-            examId : '',
-            examIdRadio : '',
+            quizId : '',
+            quizIdRadio : '',
             title : '',
             courseId : '',
-            examTime : '',
+            quizTime : '',
             numberOfQuestion : '',
-            passingGrade : '',
-            examsData : [],
+            quizData : [],
             coursesData : [],
             onSubmit : false,
-            titleModal : 'Create Exam',
+            titleModal : 'Create Quiz',
             btnCreateQuestion : false
         }
     }
 
     async componentDidMount() {
         await getPersonalInfo();
-        await this.getExams();
+        await this.getQuiz();
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -39,15 +38,14 @@ class Exams extends Component {
     }
 
     async componentDidUpdate(prevProps, prevState) {
-        if(prevState.examId != this.state.examId && this.state.examId != ''){
-            const exam = await getExamById(this.state.examId);
+        if(prevState.quizId != this.state.quizId && this.state.quizId != ''){
+            const quiz = await getQuizById(this.state.quizId);
             this.setState({
-                title : exam.data.title,
-                courseId : exam.data.course_id,
-                examTime : exam.data.exam_time,
-                numberOfQuestion : exam.data.number_of_question,
-                passingGrade : exam.data.passing_grade,
-                titleModal : 'Update Exam'
+                title : quiz.data.title,
+                courseId : quiz.data.course_id,
+                quizTime : quiz.data.quiz_time,
+                numberOfQuestion : quiz.data.number_of_question,
+                titleModal : 'Update Quiz'
             });
             await this.initModal();
         }
@@ -56,44 +54,42 @@ class Exams extends Component {
     async initModal() {
         const courses = await getCourse();
         this.setState({ coursesData : courses.data });
-        $("#modalExam").modal('show');
+        $("#modalQuiz").modal('show');
     }
 
-    async getExams() {
-        const exams = await getExams();
-        this.setState({ examsData : exams.data });
+    async getQuiz() {
+        const quiz = await getQuiz();
+        this.setState({ quizData : quiz.data });
     }
 
     async closeModal() {
         this.setState({
-            examId : '',
+            quizId : '',
             title : '',
             courseId : '',
-            examTime : '',
+            quizTime : '',
             numberOfQuestion : '',
-            passingGrade : '',
-            titleModal : 'Create Exam'
+            titleModal : 'Create Quiz'
         });
-        $("#modalExam").modal('hide');
+        $("#modalQuiz").modal('hide');
     }
 
-    async saveExam() {
+    async saveQuiz() {
         try {
             const data = {
                 title : this.state.title,
                 course_id : this.state.courseId,
-                exam_time : this.state.examTime,
+                quiz_time : this.state.quizTime,
                 number_of_question : this.state.numberOfQuestion,
                 created_by : Cookies.get('userId'),
-                passing_grade : this.state.passingGrade
             }
             this.setState({ onSubmit : true });
             setTimeout(async() => {
                 var save;
-                if(this.state.examId != ''){
-                    save = await updateExam(data, this.state.examId);
+                if(this.state.quizId != ''){
+                    save = await updateQuiz(data, this.state.quizId);
                 }else { 
-                    save = await createExam(data);
+                    save = await createQuiz(data);
                 }
                 if(save.is_error == false){
                     iziToast.success({
@@ -101,7 +97,7 @@ class Exams extends Component {
                         message : handleMessage(save.message),
                         position : 'topRight'
                     });
-                    await this.getExams();
+                    await this.getQuiz();
                     await this.closeModal();
                 }else {
                     iziToast.warning({
@@ -116,18 +112,18 @@ class Exams extends Component {
         }
     }
 
-    async deleteExam(id) {
+    async deleteQuiz(id) {
         swal({
             title: "Are you sure?",
-            text: "Once deleted, you will not be able to recover this exam",
+            text: "Once deleted, you will not be able to recover this quiz",
             icon: "warning",
             buttons: true,
             dangerMode: true,
         }).then(async(willDelete) => {
             if(willDelete){
-                const deleted = await deleteExam(id);
+                const deleted = await deleteQuiz(id);
                 if(deleted.is_error == false){
-                    await this.getExams();
+                    await this.getQuiz();
                     return iziToast.success({
                         title: "Success!",
                         message: handleMessage(deleted.message),
@@ -144,27 +140,27 @@ class Exams extends Component {
         });
     }
 
-    onCreateQuestion (examId){
+    onCreateQuestion (quizId){
         this.setState({
             btnCreateQuestion : true,
-            examIdRadio : examId
+            quizIdRadio : quizId
         });
     }
 
     render() {
 
-        const { examsData, coursesData } =  this.state;
+        const { quizData, coursesData } =  this.state;
 
         return (
             <div className="main-content">
                 <section className="section">
                     <div className="section-header">
-                    <h1>Exams</h1>
+                    <h1>Quiz</h1>
                         <div className="section-header-breadcrumb">
                             <div className="breadcrumb-item active">
                                 <Link to="/home">Dashboard</Link>
                             </div>
-                            <div className="breadcrumb-item">Manage Exams</div>
+                            <div className="breadcrumb-item">Manage Quiz</div>
                         </div>
                     </div>
                     <div className="section-body">
@@ -173,12 +169,12 @@ class Exams extends Component {
                                 <div className="card">
                                     <div className="card-body">
                                         <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create Exam
+                                                &nbsp;Create Quiz
                                         </button>
                                         {
                                             this.state.btnCreateQuestion ? 
-                                                <Link to={`/home/exams/${this.state.examIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-plus"></i> 
-                                                    &nbsp;Create Exam Question
+                                                <Link to={`/home/quiz/${this.state.quizIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-plus"></i> 
+                                                    &nbsp;Create Quiz Question
                                                 </Link>
                                             :
                                             ''
@@ -194,7 +190,6 @@ class Exams extends Component {
                                                         <th>Organization</th>
                                                         <th>Time</th>
                                                         <th>NOQ</th>
-                                                        <th>Pass. Grade</th>
                                                         <th>Created At</th>
                                                         <th>Updated At</th>
                                                         <th>Action</th>
@@ -202,29 +197,28 @@ class Exams extends Component {
                                                 </thead>
                                                 <tbody>
                                                     {
-                                                        examsData.map((exam, i) => {
+                                                        quizData.map((quiz, i) => {
                                                             return (
                                                                 <tr key={i}>
-                                                                    <td><input type="radio" name="radio" onClick={() => this.onCreateQuestion(exam.id)} /></td>
-                                                                    <td>{exam.id}</td>
-                                                                    <td>{exam.title}</td>
-                                                                    <td>{exam.course.course_name}</td>
-                                                                    <td>{exam.course.organization.organization_name}</td>
-                                                                    <td>{exam.exam_time +' Minutes'}</td>
-                                                                    <td>{exam.number_of_question}</td>
-                                                                    <td>{exam.passing_grade}</td>
-                                                                    <td>{ moment(exam.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
-                                                                    <td>{ moment(exam.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
+                                                                    <td><input type="radio" name="radio" onClick={() => this.onCreateQuestion(quiz.id)} /></td>
+                                                                    <td>{quiz.id}</td>
+                                                                    <td>{quiz.title}</td>
+                                                                    <td>{quiz.course.course_name}</td>
+                                                                    <td>{quiz.course.organization.organization_name}</td>
+                                                                    <td>{quiz.quiz_time +' Minutes'}</td>
+                                                                    <td>{quiz.number_of_question}</td>
+                                                                    <td>{ moment(quiz.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
+                                                                    <td>{ moment(quiz.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>
                                                                         <button
                                                                             className="btn btn-primary w-100 my-2"
-                                                                            onClick={(e) => this.setState({ examId : exam.id }) }
+                                                                            onClick={(e) => this.setState({ quizId : quiz.id }) }
                                                                         >
                                                                             Update
                                                                         </button>
                                                                         <button
                                                                             className="btn btn-danger w-100 my-1 mb-2"
-                                                                            onClick={async(e) => await this.deleteExam(exam.id) }
+                                                                            onClick={async(e) => await this.deleteQuiz(quiz.id) }
                                                                         >
                                                                             Delete
                                                                         </button>
@@ -236,7 +230,7 @@ class Exams extends Component {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div id="modalExam" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div id="modalQuiz" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                             <div className="modal-dialog" role="document">
                                                 <div className="modal-content">
                                                     <div className="modal-header">
@@ -279,8 +273,8 @@ class Exams extends Component {
                                                                 <input
                                                                     type="number"
                                                                     className="form-control"
-                                                                    value={this.state.examTime}
-                                                                    onChange={(e) => this.setState({ examTime : e.target.value }) }
+                                                                    value={this.state.quizTime}
+                                                                    onChange={(e) => this.setState({ quizTime : e.target.value }) }
                                                                 />
                                                             </div>
                                                             <div className="form-group">
@@ -292,20 +286,11 @@ class Exams extends Component {
                                                                     onChange={(e) => this.setState({ numberOfQuestion : e.target.value }) }
                                                                 />
                                                             </div>
-                                                            <div className="form-group">
-                                                                <label>Passing Grade</label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="form-control"
-                                                                    value={ this.state.passingGrade }
-                                                                    onChange={(e) => this.setState({ passingGrade : e.target.value }) }
-                                                                />
-                                                            </div>
                                                         </form>
                                                     </div>
                                                     <div className="modal-footer">
                                                         <button type="button" className="btn btn-warning" onClick={async() => this.closeModal()}>Close</button>
-                                                        <button type="button" className="btn btn-primary" onClick={async() => await this.saveExam()} >{this.state.onSubmit ? <div><i className="fa fa-spinner fa-spin"></i> Loading...</div> : 'Submit'}</button>
+                                                        <button type="button" className="btn btn-primary" onClick={async() => await this.saveQuiz()} >{this.state.onSubmit ? <div><i className="fa fa-spinner fa-spin"></i> Loading...</div> : 'Submit'}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -321,4 +306,4 @@ class Exams extends Component {
     }
 }
 
-export default Exams;
+export default Quiz;
