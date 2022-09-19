@@ -8,6 +8,7 @@ import swal from "sweetalert";
 import iziToast from "izitoast";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import Cookies from "js-cookie";
+import { getPermission } from "../../api/Users";
 
 class Exams extends Component {
 
@@ -25,13 +26,23 @@ class Exams extends Component {
             coursesData : [],
             onSubmit : false,
             titleModal : 'Create Exam',
-            btnCreateQuestion : false
+            btnCreateQuestion : false,
+            permission : []
         }
     }
 
     async componentDidMount() {
         await getPersonalInfo();
         await this.getExams();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
+        }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -172,13 +183,17 @@ class Exams extends Component {
                             <div className="col-12">
                                 <div className="card">
                                     <div className="card-body">
-                                        <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create Exam
-                                        </button>
                                         {
-                                            this.state.btnCreateQuestion ? 
-                                                <Link to={`/home/exams/${this.state.examIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-plus"></i> 
-                                                    &nbsp;Create Exam Question
+                                            this.state.permission.includes('Create') ?
+                                            <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                                &nbsp;Create Exam
+                                            </button>
+                                            : ''
+                                        }
+                                        {
+                                            this.state.btnCreateQuestion && this.state.permission.includes('Update') ? 
+                                                <Link to={`/home/exams/${this.state.examIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-edit"></i> 
+                                                    &nbsp;Exam Question
                                                 </Link>
                                             :
                                             ''
@@ -216,18 +231,28 @@ class Exams extends Component {
                                                                     <td>{ moment(exam.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>{ moment(exam.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>
-                                                                        <button
-                                                                            className="btn btn-primary w-100 my-2"
-                                                                            onClick={(e) => this.setState({ examId : exam.id }) }
-                                                                        >
-                                                                            Update
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn btn-danger w-100 my-1 mb-2"
-                                                                            onClick={async(e) => await this.deleteExam(exam.id) }
-                                                                        >
-                                                                            Delete
-                                                                        </button>
+                                                                        {
+                                                                            this.state.permission.includes('Update') ?
+                                                                            <button
+                                                                                className="btn btn-primary w-100 my-2"
+                                                                                onClick={(e) => this.setState({ examId : exam.id }) }
+                                                                            >
+                                                                                Update
+                                                                            </button>
+                                                                            :
+                                                                            ''
+                                                                        }
+                                                                        {
+                                                                            this.state.permission.includes('Delete') ?
+                                                                            <button
+                                                                                className="btn btn-danger w-100 my-1 mb-2"
+                                                                                onClick={async(e) => await this.deleteExam(exam.id) }
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                            :
+                                                                            ''
+                                                                        }
                                                                     </td>
                                                                 </tr>
                                                             )

@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { createPosition, deletePosition, getPosition, getPositionCode, updatePosition } from "../../api/Users";
+import { createPosition, deletePosition, getPermission, getPosition, getPositionCode, updatePosition } from "../../api/Users";
 import $ from "jquery";
 import iziToast from "izitoast";
 import swal from "sweetalert";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import moment from "moment";
+import Cookies from "js-cookie";
 
 
 class Position extends Component {
@@ -19,6 +20,7 @@ class Position extends Component {
             position_code_edit : '',
             onSubmit : false,
             positionData : [],
+            permission : [],
             titleModal : 'Create Position'
         }
     }
@@ -26,6 +28,15 @@ class Position extends Component {
     async componentDidMount() {
         await getPersonalInfo();
         await this.getPosition();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
+        }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             pageLength : 10
         });
@@ -151,9 +162,14 @@ class Position extends Component {
                             <div className="col-12">
                                 <div className="card">
                                     <div className="card-body">
-                                        <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create User
-                                        </button>
+                                        {
+                                            this.state.permission.includes('Create') ? 
+                                            <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                                &nbsp;Create Position
+                                            </button>
+                                            :
+                                            ''
+                                        }
                                         <div className="table table-responsive">
                                         <table className="table table-striped" id="dataTable">
                                             <thead>
@@ -177,18 +193,28 @@ class Position extends Component {
                                                                 <td>{ moment(pos.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>{ moment(pos.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                 <td>
-                                                                    <button
-                                                                        className="btn btn-primary w-100 my-2"
-                                                                        onClick={(e) => this.setState({ position_code_edit : pos.position_code }) }
-                                                                    >
-                                                                        Update
-                                                                    </button>
-                                                                    <button
-                                                                        className="btn btn-danger w-100 my-1 mb-2"
-                                                                        onClick={async(e) => await this.deletePosition(pos.position_code) }
-                                                                    >
-                                                                        Delete
-                                                                    </button>
+                                                                    {
+                                                                        this.state.permission.includes('Update') ?
+                                                                        <button
+                                                                            className="btn btn-primary w-100 my-2"
+                                                                            onClick={(e) => this.setState({ position_code_edit : pos.position_code }) }
+                                                                        >
+                                                                            Update
+                                                                        </button>
+                                                                        :
+                                                                        ''
+                                                                    }
+                                                                    {
+                                                                         this.state.permission.includes('Delete') ?
+                                                                        <button
+                                                                            className="btn btn-danger w-100 my-1 mb-2"
+                                                                            onClick={async(e) => await this.deletePosition(pos.position_code) }
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                        :
+                                                                        ''
+                                                                    }
                                                                 </td>
                                                             </tr>
                                                         )

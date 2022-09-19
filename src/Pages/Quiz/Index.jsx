@@ -8,6 +8,7 @@ import iziToast from "izitoast";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import Cookies from "js-cookie";
 import { createQuiz, deleteQuiz, getQuiz, getQuizById, updateQuiz } from "../../api/Quiz";
+import { getPermission } from "../../api/Users";
 
 class Quiz extends Component {
 
@@ -24,13 +25,23 @@ class Quiz extends Component {
             coursesData : [],
             onSubmit : false,
             titleModal : 'Create Quiz',
-            btnCreateQuestion : false
+            btnCreateQuestion : false,
+            permission : []
         }
     }
 
     async componentDidMount() {
         await getPersonalInfo();
         await this.getQuiz();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
+        }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -168,13 +179,18 @@ class Quiz extends Component {
                             <div className="col-12">
                                 <div className="card">
                                     <div className="card-body">
-                                        <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create Quiz
-                                        </button>
                                         {
-                                            this.state.btnCreateQuestion ? 
-                                                <Link to={`/home/quiz/${this.state.quizIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-plus"></i> 
-                                                    &nbsp;Create Quiz Question
+                                            this.state.permission.includes('Create') ?
+                                            <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                                &nbsp;Create Quiz
+                                            </button>
+                                            :
+                                            ''
+                                        }
+                                        {
+                                            this.state.btnCreateQuestion  && this.state.permission.includes('Update') ? 
+                                                <Link to={`/home/quiz/${this.state.quizIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-edit"></i> 
+                                                    &nbsp;Quiz Question
                                                 </Link>
                                             :
                                             ''
@@ -210,18 +226,28 @@ class Quiz extends Component {
                                                                     <td>{ moment(quiz.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>{ moment(quiz.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>
-                                                                        <button
-                                                                            className="btn btn-primary w-100 my-2"
-                                                                            onClick={(e) => this.setState({ quizId : quiz.id }) }
-                                                                        >
-                                                                            Update
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn btn-danger w-100 my-1 mb-2"
-                                                                            onClick={async(e) => await this.deleteQuiz(quiz.id) }
-                                                                        >
-                                                                            Delete
-                                                                        </button>
+                                                                        {
+                                                                            this.state.permission.includes('Update') ?
+                                                                            <button
+                                                                                className="btn btn-primary w-100 my-2"
+                                                                                onClick={(e) => this.setState({ quizId : quiz.id }) }
+                                                                            >
+                                                                                Update
+                                                                            </button>
+                                                                            :
+                                                                            ''
+                                                                        }
+                                                                        {
+                                                                            this.state.permission.includes('Delete') ?
+                                                                            <button
+                                                                                className="btn btn-danger w-100 my-1 mb-2"
+                                                                                onClick={async(e) => await this.deleteQuiz(quiz.id) }
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                            :
+                                                                            ''
+                                                                        }
                                                                     </td>
                                                                 </tr>
                                                             )

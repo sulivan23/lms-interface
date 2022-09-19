@@ -31,7 +31,7 @@ export const updateCourse = async(data, id) => {
     return updated.data;
 }
 
-export const creteCourse = async(data) => {
+export const createCourse = async(data) => {
     axios.defaults.withCredentials = true;
     const create = await axios.post(url,{
         course_name : data.course_name,
@@ -44,7 +44,7 @@ export const creteCourse = async(data) => {
 
 export const getCoursesByOrg = async(org) => {
     axios.defaults.withCredentials = true;
-    const courses = await axios.post(url, {
+    const courses = await axios.post(`${url}/org`, {
         organization_code : org
     });
     return courses.data;

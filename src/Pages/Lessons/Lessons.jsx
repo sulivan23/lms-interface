@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 import { getCourse } from "../../api/Courses";
 import SubLessons from "./SubLessons";
+import { getPermission } from "../../api/Users";
 
 class Lessons extends Component {
 
@@ -24,13 +25,23 @@ class Lessons extends Component {
             titleModal : 'Create Lesson',
             lessonContent : [],
             loadingLessonContent : false,
-            lesson_id_content : ''
+            lesson_id_content : '',
+            permission : []
         };
     }
 
     async componentDidMount() {
         await getPersonalInfo();
         await this.getLesson();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.location.pathname
+        });
+        if(permission.data == null){
+            return this.props.history.push('/home/404');  
+        }
+        this.setState({ permission : permission.data.permission.split(', ') });
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -165,9 +176,14 @@ class Lessons extends Component {
                                 <div className="col-12">
                                     <div className="card">
                                         <div className="card-body">
-                                            <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                                            {
+                                                this.state.permission.includes('Create') ?
+                                                <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
                                                     &nbsp;Create Lesson
-                                            </button>
+                                                </button>
+                                                :
+                                                ''
+                                            }
                                             <div className="table table-responsive">
                                                 <table className="table table-striped" id="dataTable">
                                                     <thead>
@@ -196,18 +212,28 @@ class Lessons extends Component {
                                                                         <td>{ moment(les.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                         <td>{ moment(les.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                         <td>
-                                                                            <button
-                                                                                className="btn btn-primary w-100 my-2"
-                                                                                onClick={(e) => this.setState({ lesson_id : les.id }) }
-                                                                            >
-                                                                                Update
-                                                                            </button>
-                                                                            <button
-                                                                                className="btn btn-danger w-100 my-1 mb-2"
-                                                                                onClick={async(e) => await this.deleteLesson(les.id) }
-                                                                            >
-                                                                                Delete
-                                                                            </button>
+                                                                            {
+                                                                                this.state.permission.includes('Update') ?
+                                                                                <button
+                                                                                    className="btn btn-primary w-100 my-2"
+                                                                                    onClick={(e) => this.setState({ lesson_id : les.id }) }
+                                                                                >
+                                                                                    Update
+                                                                                </button>
+                                                                                :
+                                                                                ''
+                                                                            }
+                                                                            {
+                                                                                this.state.permission.includes('Delete') ?
+                                                                                <button
+                                                                                    className="btn btn-danger w-100 my-1 mb-2"
+                                                                                    onClick={async(e) => await this.deleteLesson(les.id) }
+                                                                                >
+                                                                                    Delete
+                                                                                </button>
+                                                                                :
+                                                                                ''
+                                                                            }
                                                                         </td>
                                                                     </tr>
                                                                 )

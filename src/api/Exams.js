@@ -2,6 +2,7 @@ import { refreshToken } from "./Users";
 import axios from "axios";
 
 const url = 'http://localhost:3001/exam';
+const urlQuest = 'http://localhost:3001/exam_question'
 
 export const getExams = async() => {
     axios.defaults.withCredentials = true;
@@ -42,17 +43,28 @@ export const getExamByCourse = async(courseId) => {
 }
 
 export const getQuestionByExam = async(examId, questionNumber) => {
-
+    axios.defaults.withCredentials = true;
+    const quest = await axios.post(`${urlQuest}/exam`, {
+        exam_id : examId,
+        question_number : questionNumber
+    });
+    return quest.data;
 }
 
-export const deleteQuestionExam = async(id) => {
-
+export const deleteExamQuestion = async(id) => {
+    axios.defaults.withCredentials = true;
+    const quest = await axios.delete(`${urlQuest}/${id}`);
+    return quest.data;
 }
 
-export const updateQuestionExam = async(data, id) => {
-
+export const updateExamQuestion = async(data, id) => {
+    axios.defaults.withCredentials = true;
+    const quest = await axios.put(`${urlQuest}/${id}`, data);
+    return quest.data;
 }
 
 export const createExamQuestion = async(data) => {
-
+    axios.defaults.withCredentials = true;
+    const quest = await axios.post(`${urlQuest}`, data);
+    return quest.data;
 }

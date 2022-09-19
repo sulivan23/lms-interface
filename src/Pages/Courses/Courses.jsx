@@ -22,7 +22,7 @@ const Courses = () => {
                 <div className="col-12">
                   <div className="card">
                     <div className="card-body">
-                        <CoursesData/>
+                        <CoursesData />
                     </div>
                   </div>
                 </div>

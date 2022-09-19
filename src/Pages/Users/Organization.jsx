@@ -23,7 +23,7 @@ class Organization extends Component {
             titleModal : 'Create Organization',
             type : ['Department', 'Division', 'Board Of Director', 'President Director'],
             onSubmit : false,
-            permission : '',
+            permission : [],
             accessToken : '',
             userInfo : {}
         }

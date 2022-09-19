@@ -1,13 +1,13 @@
 import React, { Component } from "react";
-import { deletedCourse, getCourse, getCourseById, updateCourse } from "../../api/Courses";
+import { deletedCourse, getCourse, getCourseById, getCoursesByOrg, updateCourse } from "../../api/Courses";
 import $ from "jquery";
 import moment from "moment";
 import iziToast from "izitoast";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import swal from "sweetalert";
-import { creteCourse } from "../../api/Courses";
+import { createCourse } from "../../api/Courses";
 import Cookies from "js-cookie";
-import { getOrganization } from "../../api/Organization";
+import { getOrganization, getOrganizationByCode } from "../../api/Organization";
 
 class CoursesData extends Component {   
     
@@ -23,13 +23,21 @@ class CoursesData extends Component {
             orgData : [],
             dueDate : '',
             idCourse : '',
-            titleModal : 'Create Course'
+            titleModal : 'Create Course',
+            userData : {}
         }
     }
 
     async initModal() {
         $('#modalCourse').modal('show');
-        const data = await getOrganization();
+        if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+            var data = await getOrganization();
+        }else {
+            var orgByCode = await getOrganizationByCode(this.state.userData.organization.organization_code);
+            data = {
+                data : [orgByCode.data]
+            };
+        }
         this.setState({ orgData : data.data });
     }
 
@@ -45,7 +53,7 @@ class CoursesData extends Component {
             setTimeout(async() => {
                 var save;
                 if(this.state.idCourse == ''){
-                    save = await creteCourse(data);
+                    save = await createCourse(data);
                 }else{
                     save = await updateCourse(data, this.state.idCourse);
                 }
@@ -81,12 +89,17 @@ class CoursesData extends Component {
     }
 
     async getData(){
-        const courses = await getCourse();
+        if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+            var courses = await getCourse();
+        }else{
+            var courses = await getCoursesByOrg(this.state.userData.organization.organization_code);
+        }
         this.setState({ courses : courses.data });
     }
 
     async componentDidMount() {
-        await getPersonalInfo();
+        const { user } =  await getPersonalInfo();
+        this.setState({ userData : user });
         await this.Loading();
         await this.getData();
         $("#dataTable").DataTable({
@@ -105,10 +118,6 @@ class CoursesData extends Component {
             this.setState({ orgName : getCourse.data.organization.organization_name });
             this.setState({ dueDate : getCourse.data.due_date });
         }
-    }
-
-    async updateCourse() {
-
     }
 
     async deleteCourse(id) {
