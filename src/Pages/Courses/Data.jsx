@@ -20,6 +20,7 @@ class CoursesData extends Component {
             courseName : '',
             org : '',
             orgName : '',
+            description : '',
             orgData : [],
             dueDate : '',
             idCourse : '',
@@ -46,6 +47,7 @@ class CoursesData extends Component {
             this.setState({ onSubmit : true });
             const data = {
                 course_name : this.state.courseName,
+                description : this.state.description,
                 organization : this.state.org,
                 due_date : this.state.dueDate,
                 created_by : Cookies.get('userId')
@@ -117,6 +119,7 @@ class CoursesData extends Component {
             this.setState({ org : getCourse.data.organization.organization_code });
             this.setState({ orgName : getCourse.data.organization.organization_name });
             this.setState({ dueDate : getCourse.data.due_date });
+            this.setState({ description : getCourse.data.description });
         }
     }
 
@@ -153,6 +156,7 @@ class CoursesData extends Component {
             courseName : '',
             org : '',
             orgName : '',
+            description : '',
             dueDate : '',
             idCourse : '',
             titleModal : 'Create Course'
@@ -226,6 +230,17 @@ class CoursesData extends Component {
                                         placeholder="Course Name..."
                                         value={ this.state.courseName }
                                         onChange={(e) => this.setState({ courseName : e.target.value }) }
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        height="250"
+                                        width="500"
+                                        className="form-control"
+                                        onChange={(e) => this.setState({ description : e.target.value })}
+                                        placeholder="Description..."
+                                        value={this.state.description}
                                     />
                                 </div>
                                 <div className="form-group">

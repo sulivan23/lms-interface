@@ -90,3 +90,9 @@ export const getLessonContentById = async(id) => {
     const lesson = await axios.get(`${urlLessonContent}/${id}`);
     return lesson.data;
 }
+
+export const getFirstLesson = async(courseId) => {
+    axios.defaults.withCredentials = true;
+    const firstLesson = await axios.get(`${urlLesson}/first_lesson/${courseId}`);
+    return firstLesson.data;
+}

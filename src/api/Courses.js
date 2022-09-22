@@ -1,6 +1,7 @@
 import axios from "axios"
 
 const url = 'http://localhost:3001/course';
+const urlLearning = 'http://localhost:3001/learning';
 
 export const getCourse = async() => {
     axios.defaults.withCredentials = true;
@@ -25,6 +26,7 @@ export const updateCourse = async(data, id) => {
     const updated = await axios.put(`${url}/${id}`, {
         course_name : data.course_name,
         organization_code : data.organization,
+        description : data.description,
         due_date : data.due_date,
         created_by : data.created_by
     });
@@ -36,6 +38,7 @@ export const createCourse = async(data) => {
     const create = await axios.post(url,{
         course_name : data.course_name,
         organization_code : data.organization,
+        description : data.description,
         due_date : data.due_date,
         created_by : data.created_by
     });
@@ -52,6 +55,14 @@ export const getCoursesByOrg = async(org) => {
 
 export const enrollCourse = async(data) => {
     axios.defaults.withCredentials = true;
-    const enroll = await axios.post(url, data);
-    return enroll;
+    const enroll = await axios.post(urlLearning, data);
+    return enroll.data;
+}
+
+export const getMyCourses = async(employeeId) => {
+    axios.defaults.withCredentials = true;
+    const courses = await axios.post(`${url}/my_courses`, {
+        employee_id : employeeId
+    });
+    return courses.data;
 }

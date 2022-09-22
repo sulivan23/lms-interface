@@ -162,7 +162,7 @@ class Lessons extends Component {
                 <div className="main-content">
                     <section className="section">
                         <div className="section-header">
-                        <h1>Manage Lessons</h1>
+                            <h1>Manage Lessons</h1>
                             <div className="section-header-breadcrumb">
                                 <div className="breadcrumb-item active">
                                     <Link to="/home">Dashboard</Link>

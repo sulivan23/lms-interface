@@ -19,6 +19,7 @@ class Exams extends Component {
             examIdRadio : '',
             title : '',
             courseId : '',
+            description : '',
             examTime : '',
             numberOfQuestion : '',
             passingGrade : '',
@@ -55,6 +56,7 @@ class Exams extends Component {
             this.setState({
                 title : exam.data.title,
                 courseId : exam.data.course_id,
+                description : exam.data.description,
                 examTime : exam.data.exam_time,
                 numberOfQuestion : exam.data.number_of_question,
                 passingGrade : exam.data.passing_grade,
@@ -80,6 +82,7 @@ class Exams extends Component {
             examId : '',
             title : '',
             courseId : '',
+            description : '',
             examTime : '',
             numberOfQuestion : '',
             passingGrade : '',
@@ -93,6 +96,7 @@ class Exams extends Component {
             const data = {
                 title : this.state.title,
                 course_id : this.state.courseId,
+                description : this.state.description,
                 exam_time : this.state.examTime,
                 number_of_question : this.state.numberOfQuestion,
                 created_by : Cookies.get('userId'),
@@ -280,6 +284,17 @@ class Exams extends Component {
                                                                     placeholder="Title..."
                                                                     value={ this.state.title }
                                                                     onChange={(e) => this.setState({ title : e.target.value }) }
+                                                                />
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>Description</label>
+                                                                <textarea
+                                                                    height="250"
+                                                                    width="500"
+                                                                    className="form-control"
+                                                                    onChange={(e) => this.setState({ description : e.target.value })}
+                                                                    placeholder="Description..."
+                                                                    value={this.state.description}
                                                                 />
                                                             </div>
                                                             <div className="form-group">
