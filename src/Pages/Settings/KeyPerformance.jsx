@@ -1,42 +1,37 @@
+import Cookies from "js-cookie";
 import React, { Component } from "react";
-import moment from "moment";
 import { Link } from "react-router-dom";
-import { getCourse, getCoursesByOrg } from "../../api/Courses";
-import { createExam, deleteExam, getExamById, getExams, updateExam } from "../../api/Exams";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
+import { createKPI, deleteKPI, getKPI, getKPIById, updateKPI } from "../../api/KeyPerformance";
+import { getOrganization } from "../../api/Organization";
+import { getPermission } from "../../api/Users";
+import moment from "moment";
 import $ from "jquery";
 import swal from "sweetalert";
 import iziToast from "izitoast";
-import { getPersonalInfo, handleMessage } from "../../api/Helper";
-import Cookies from "js-cookie";
-import { getPermission } from "../../api/Users";
 
-class Exams extends Component {
+class SettingKeyPerformance extends Component {
 
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
-            examId : '',
-            examIdRadio : '',
-            title : '',
-            courseId : '',
-            description : '',
-            examTime : '',
-            numberOfQuestion : '',
-            passingGrade : '',
-            examsData : [],
-            coursesData : [],
-            onSubmit : false,
-            titleModal : 'Create Exam',
-            btnCreateQuestion : false,
+            kpiId :'',
+            targetProgressCourse : '',
+            targetAverageExam : '',
+            yearPeriod : '',
+            organizationCode : '',
+            kpiData : [],
             permission : [],
-            userData : {}
+            organization : [],
+            onSubmit : false,
+            titleModal : 'Create KPI',
+            periodData : []
         }
     }
 
     async componentDidMount() {
-        const { user } = await getPersonalInfo();
-        this.setState({ userData : user });
-        await this.getExams();
+        await getPersonalInfo();
+        await this.getData();
         const permission = await getPermission({
             role : Cookies.get('role'),
             type : 'Menu',
@@ -45,79 +40,75 @@ class Exams extends Component {
         if(permission.data == null){
             return this.props.history.push('/home/404');  
         }
-        this.setState({ permission : permission.data.permission.split(', ') });
-        if(this.state.coursesData.length == 0){
-            var course;
-            if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
-                var course = await getCourse();
-            }else{
-                var course = await getCoursesByOrg(this.state.userData.organization.organization_code)
-            }
-            this.setState({ coursesData : course.data });
+        var period = [];
+        let currentYear = moment(new Date()).format('Y');
+        for(var i=currentYear; i <= parseFloat(currentYear)+parseFloat(10); i++){
+            period.push(i);
         }
+        this.setState({ 
+            periodData : period,
+            permission : permission.data.permission.split(', ')
+        });
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
         });
     }
 
+    async getData() {
+        const kpi = await getKPI();
+        this.setState({ kpiData : kpi.data });
+    }
+
     async componentDidUpdate(prevProps, prevState) {
-        if(prevState.examId != this.state.examId && this.state.examId != ''){
-            const exam = await getExamById(this.state.examId);
+        if(prevState.kpiId != this.state.kpiId && this.state.kpiId != ''){
+            const kpi = await getKPIById(this.state.kpiId);
             this.setState({
-                title : exam.data.title,
-                courseId : exam.data.course_id,
-                description : exam.data.description,
-                examTime : exam.data.exam_time,
-                numberOfQuestion : exam.data.number_of_question,
-                passingGrade : exam.data.passing_grade,
-                titleModal : 'Update Exam'
+                targetProgressCourse : kpi.data.target_progress_course,
+                targetAverageExam : kpi.data.target_average_exam,
+                yearPeriod : kpi.data.period_year,
+                organizationCode : kpi.data.organization_code,
+                titleModal : 'Update KPI'
             });
             await this.initModal();
         }
     }
 
     async initModal() {
-        $("#modalExam").modal('show');
-    }
-
-    async getExams() {
-        const exams = await getExams();
-        this.setState({ examsData : exams.data });
+        if(this.state.organization.length == 0){
+            const organization = await getOrganization();
+            this.setState({ organization : organization.data });
+        }
+        $("#modalKPI").modal('show');
     }
 
     async closeModal() {
         this.setState({
-            examId : '',
-            title : '',
-            courseId : '',
-            description : '',
-            examTime : '',
-            numberOfQuestion : '',
-            passingGrade : '',
-            titleModal : 'Create Exam'
+            kpiId :'',
+            targetProgressCourse : '',
+            targetAverageExam : '',
+            yearPeriod : '',
+            organizationCode : '',
+            titleModal : 'Create KPI'
         });
-        $("#modalExam").modal('hide');
+        $("#modalKPI").modal('hide');
     }
 
-    async saveExam() {
+    async saveData() {
         try {
             const data = {
-                title : this.state.title,
-                course_id : this.state.courseId,
-                description : this.state.description,
-                exam_time : this.state.examTime,
-                number_of_question : this.state.numberOfQuestion,
-                created_by : Cookies.get('userId'),
-                passing_grade : this.state.passingGrade
+                target_progress_course : this.state.targetProgressCourse,
+                target_average_exam : this.state.targetAverageExam,
+                period_year : this.state.yearPeriod,
+                organization_code : this.state.organizationCode
             }
             this.setState({ onSubmit : true });
             setTimeout(async() => {
                 var save;
-                if(this.state.examId != ''){
-                    save = await updateExam(data, this.state.examId);
-                }else { 
-                    save = await createExam(data);
+                if(this.state.kpiId != ''){
+                    save = await updateKPI(data, this.state.kpiId);
+                }else {
+                    save = await createKPI(data);
                 }
                 if(save.is_error == false){
                     iziToast.success({
@@ -125,7 +116,7 @@ class Exams extends Component {
                         message : handleMessage(save.message),
                         position : 'topRight'
                     });
-                    await this.getExams();
+                    await this.getData();
                     await this.closeModal();
                 }else {
                     iziToast.warning({
@@ -135,23 +126,23 @@ class Exams extends Component {
                 }
                 this.setState({ onSubmit : false });
             }, 1000);
-        } catch(err){
+        } catch(err) {
             console.log(err);
         }
-    }
+    } 
 
-    async deleteExam(id) {
+    async deleteData(id) {
         swal({
             title: "Are you sure?",
-            text: "Once deleted, you will not be able to recover this exam",
+            text: "Once deleted, you will not be able to recover this KPI",
             icon: "warning",
             buttons: true,
             dangerMode: true,
         }).then(async(willDelete) => {
             if(willDelete){
-                const deleted = await deleteExam(id);
+                const deleted = await deleteKPI(id);
                 if(deleted.is_error == false){
-                    await this.getExams();
+                    await this.getData();
                     return iziToast.success({
                         title: "Success!",
                         message: handleMessage(deleted.message),
@@ -168,27 +159,18 @@ class Exams extends Component {
         });
     }
 
-    onCreateQuestion (examId){
-        this.setState({
-            btnCreateQuestion : true,
-            examIdRadio : examId
-        });
-    }
-
     render() {
-
-        const { examsData, coursesData } =  this.state;
-
         return (
             <div className="main-content">
                 <section className="section">
                     <div className="section-header">
-                    <h1>Exams</h1>
+                        <h1>Setting KPI</h1>
                         <div className="section-header-breadcrumb">
                             <div className="breadcrumb-item active">
                                 <Link to="/home">Dashboard</Link>
                             </div>
-                            <div className="breadcrumb-item">Manage Exams</div>
+                            <div className="breadcrumb-item">Settings</div>
+                            <div className="breadcrumb-item">Setting KPI</div>
                         </div>
                     </div>
                     <div className="section-body">
@@ -199,15 +181,8 @@ class Exams extends Component {
                                         {
                                             this.state.permission.includes('Create') ?
                                             <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
-                                                &nbsp;Create Exam
+                                                &nbsp;Create KPI
                                             </button>
-                                            : ''
-                                        }
-                                        {
-                                            this.state.btnCreateQuestion && this.state.permission.includes('Update') ? 
-                                                <Link to={`/home/exams/${this.state.examIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-edit"></i> 
-                                                    &nbsp;Exam Question
-                                                </Link>
                                             :
                                             ''
                                         }
@@ -215,14 +190,11 @@ class Exams extends Component {
                                             <table className="table table-striped" id="dataTable">
                                                 <thead>
                                                     <tr>
-                                                        <th></th>
                                                         <th>ID</th>
-                                                        <th>Title</th>
-                                                        <th>Course</th>
+                                                        <th>Target All Course (%)</th>
+                                                        <th>Target Average Exam (All)</th>
+                                                        <th>Year Period</th>
                                                         <th>Organization</th>
-                                                        <th>Time</th>
-                                                        <th>NOQ</th>
-                                                        <th>Pass. Grade</th>
                                                         <th>Created At</th>
                                                         <th>Updated At</th>
                                                         <th>Action</th>
@@ -230,25 +202,22 @@ class Exams extends Component {
                                                 </thead>
                                                 <tbody>
                                                     {
-                                                        examsData.map((exam, i) => {
+                                                        this.state.kpiData.map((kpi, i) => {
                                                             return (
                                                                 <tr key={i}>
-                                                                    <td><input type="radio" name="radio" onClick={() => this.onCreateQuestion(exam.id)} /></td>
-                                                                    <td>{exam.id}</td>
-                                                                    <td>{exam.title}</td>
-                                                                    <td>{exam.course.course_name}</td>
-                                                                    <td>{exam.course.organization.organization_name}</td>
-                                                                    <td>{exam.exam_time +' Minutes'}</td>
-                                                                    <td>{exam.number_of_question}</td>
-                                                                    <td>{exam.passing_grade}</td>
-                                                                    <td>{ moment(exam.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
-                                                                    <td>{ moment(exam.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
+                                                                    <td>{kpi.id}</td>
+                                                                    <td>{kpi.target_progress_course}</td>
+                                                                    <td>{kpi.target_average_exam}</td>
+                                                                    <td>{kpi.period_year}</td>
+                                                                    <td>{kpi.organization.organization_name}</td>
+                                                                    <td>{ moment(kpi.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
+                                                                    <td>{ moment(kpi.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                                                     <td>
                                                                         {
                                                                             this.state.permission.includes('Update') ?
                                                                             <button
                                                                                 className="btn btn-primary w-100 my-2"
-                                                                                onClick={(e) => this.setState({ examId : exam.id }) }
+                                                                                onClick={(e) => this.setState({ kpiId : kpi.id }) }
                                                                             >
                                                                                 Update
                                                                             </button>
@@ -259,7 +228,7 @@ class Exams extends Component {
                                                                             this.state.permission.includes('Delete') ?
                                                                             <button
                                                                                 className="btn btn-danger w-100 my-1 mb-2"
-                                                                                onClick={async(e) => await this.deleteExam(exam.id) }
+                                                                                onClick={async(e) => await this.deleteData(kpi.id) }
                                                                             >
                                                                                 Delete
                                                                             </button>
@@ -274,7 +243,7 @@ class Exams extends Component {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div id="modalExam" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div id="modalKPI" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                             <div className="modal-dialog" role="document">
                                                 <div className="modal-content">
                                                     <div className="modal-header">
@@ -286,75 +255,68 @@ class Exams extends Component {
                                                     <div className="modal-body">
                                                         <form>
                                                             <div className="form-group">
-                                                                <label>Title</label>
+                                                                <label>Target All Progress Courses (%)</label>
                                                                 <input
-                                                                    type="text"
+                                                                    type="number"
                                                                     className="form-control"
-                                                                    placeholder="Title..."
-                                                                    value={ this.state.title }
-                                                                    onChange={(e) => this.setState({ title : e.target.value }) }
+                                                                    placeholder="Target Progress Courses..."
+                                                                    value={ this.state.targetProgressCourse }
+                                                                    onChange={(e) => this.setState({ targetProgressCourse : e.target.value }) }
                                                                 />
                                                             </div>
                                                             <div className="form-group">
-                                                                <label>Description</label>
-                                                                <textarea
-                                                                    height="250"
-                                                                    width="500"
+                                                                <label>Target Average All Exams</label>
+                                                                <input
+                                                                    type="number"
                                                                     className="form-control"
-                                                                    onChange={(e) => this.setState({ description : e.target.value })}
-                                                                    placeholder="Description..."
-                                                                    value={this.state.description}
+                                                                    placeholder="Target Average Exams..."
+                                                                    value={ this.state.targetAverageExam }
+                                                                    onChange={(e) => this.setState({ targetAverageExam : e.target.value }) }
                                                                 />
                                                             </div>
                                                             <div className="form-group">
-                                                                <label>Choose Course</label>
+                                                                <label>Year Period</label>
                                                                 <select
+                                                                    type="number"
                                                                     className="form-control"
-                                                                    value={ this.state.courseId }
-                                                                    onChange={(e) => this.setState({ courseId : e.target.value }) }
+                                                                    placeholder="Target Average Exams..."
+                                                                    value={ this.state.yearPeriod }
+                                                                    onChange={(e) => this.setState({ yearPeriod : e.target.value }) }
                                                                 >
-                                                                    <option value="">Choose</option>
+                                                                    <option value="">Select Year</option>
                                                                     {
-                                                                        coursesData.map((course,key) => {
+                                                                        this.state.periodData.map((year, key) => {
                                                                             return(
-                                                                                <option key={key} value={course.id}>{course.course_name}</option>
+                                                                                <option key={key} value={year}>{year}</option>
                                                                             )
                                                                         })
                                                                     }
                                                                 </select>
                                                             </div>
                                                             <div className="form-group">
-                                                                <label>Time (Minutes)</label>
-                                                                <input
+                                                                <label>Organization</label>
+                                                                <select
                                                                     type="number"
                                                                     className="form-control"
-                                                                    value={this.state.examTime}
-                                                                    onChange={(e) => this.setState({ examTime : e.target.value }) }
-                                                                />
-                                                            </div>
-                                                            <div className="form-group">
-                                                                <label>Number Of Question</label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="form-control"
-                                                                    value={ this.state.numberOfQuestion }
-                                                                    onChange={(e) => this.setState({ numberOfQuestion : e.target.value }) }
-                                                                />
-                                                            </div>
-                                                            <div className="form-group">
-                                                                <label>Passing Grade</label>
-                                                                <input
-                                                                    type="number"
-                                                                    className="form-control"
-                                                                    value={ this.state.passingGrade }
-                                                                    onChange={(e) => this.setState({ passingGrade : e.target.value }) }
-                                                                />
+                                                                    placeholder="Organization..."
+                                                                    value={ this.state.organizationCode }
+                                                                    onChange={(e) => this.setState({ organizationCode : e.target.value }) }
+                                                                >
+                                                                    <option value="">Select Organization</option>
+                                                                    {
+                                                                        this.state.organization.map((org, x) => {
+                                                                            return(
+                                                                                <option key={x} value={org.organization_code}>{org.organization_code} - {org.organization_name}</option>
+                                                                            )
+                                                                        })
+                                                                    }
+                                                                </select>
                                                             </div>
                                                         </form>
                                                     </div>
                                                     <div className="modal-footer">
                                                         <button type="button" className="btn btn-warning" onClick={async() => this.closeModal()}>Close</button>
-                                                        <button type="button" className="btn btn-primary" onClick={async() => await this.saveExam()} >{this.state.onSubmit ? <div><i className="fa fa-spinner fa-spin"></i> Loading...</div> : 'Submit'}</button>
+                                                        <button type="button" className="btn btn-primary" onClick={async() => await this.saveData()} >{this.state.onSubmit ? <div><i className="fa fa-spinner fa-spin"></i> Loading...</div> : 'Submit'}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -370,4 +332,4 @@ class Exams extends Component {
     }
 }
 
-export default Exams;
+export default SettingKeyPerformance;

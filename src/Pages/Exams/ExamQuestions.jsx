@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import { createExamQuestion, deleteExamQuestion, getExamById, getQuestionByExam, updateExamQuestion, updateQuestionExam } from "../../api/Exams";
 import iziToast from "izitoast";
-import { handleMessage } from "../../api/Helper";
+import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import swal from "sweetalert";
 
 class ExamQuestions extends Component {
@@ -28,6 +28,7 @@ class ExamQuestions extends Component {
     }
 
     async componentDidMount() {
+        await getPersonalInfo();
         await this.onLoadQuestion();
     }
 
@@ -35,6 +36,9 @@ class ExamQuestions extends Component {
         const exam = await getExamById(this.props.match.params.examId);
         const quest = await getQuestionByExam(this.props.match.params.examId, this.props.match.params.questionNumber);
         var i;
+        if(exam.data == null){
+            return this.props.history.push('/home/404');
+        }
         if(this.props.match.params.questionNumber < 1 || this.props.match.params.questionNumber > exam.data.number_of_question){
             this.props.history.push('/home/exams');
         }
@@ -185,167 +189,167 @@ class ExamQuestions extends Component {
 
     render() {
         return(
-               <div className="main-content">
-             <section className="section">
+            <div className="main-content">
+                <section className="section">
                     <div className="section-header">
-                    <h1>Exam : {this.state.examTitle} </h1>
-                        <div className="section-header-breadcrumb">
-                            <div className="breadcrumb-item active">
-                                <Link to="/home">Dashboard</Link>
+                            <h1>Exam : {this.state.examTitle} </h1>
+                            <div className="section-header-breadcrumb">
+                                <div className="breadcrumb-item active">
+                                    <Link to="/home">Dashboard</Link>
+                                </div>
+                                <div className="breadcrumb-item">Exam Question</div>
                             </div>
-                            <div className="breadcrumb-item">Exam Question</div>
                         </div>
-                    </div>
-                    <div className="section-body">
-                        <h2 className="section-title">Question Number : {this.props.match.params.questionNumber}</h2>
-                        <div className="row">
-                            <div className="col-lg-3 col-sm-12 col-md-12">
-                                <div className="card shadow-md">
-                                    <div className="card-header bg-primary text-white">Question Number</div>
-                                    <div className="card-body">
-                                        <div className="row ml-2">
-                                            {
-                                                this.state.listOfNumber.map((list, number) => {
-                                                    return (
-                                                        // <div class="col-3">
-                                                            <Link key={number} to={`/home/exams/${this.props.match.params.examId}/${list}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
-                                                        // </div>
-                                                    )
-                                                })           
-                                            }
+                        <div className="section-body">
+                            <h2 className="section-title">Question Number : {this.props.match.params.questionNumber}</h2>
+                            <div className="row">
+                                <div className="col-lg-3 col-sm-12 col-md-12">
+                                    <div className="card shadow-md">
+                                        <div className="card-header bg-primary text-white">Question Number</div>
+                                        <div className="card-body">
+                                            <div className="row ml-2">
+                                                {
+                                                    this.state.listOfNumber.map((list, number) => {
+                                                        return (
+                                                            // <div class="col-3">
+                                                                <Link key={number} to={`/home/exams/${this.props.match.params.examId}/${list}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
+                                                            // </div>
+                                                        )
+                                                    })           
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="col-lg-9 col-sm-12 col-md-12">
-                                <div className="card shadow-md">
-                                    <div className="card-body">
-                                        <div className="form-group">
-                                            <label>Name Of Question</label>
-                                            <textarea
-                                                height="250"
-                                                width="500"
-                                                className="form-control"
-                                                onChange={(e) => this.setState({ nameOfQuestion : e.target.value })}
-                                                placeholder="Name Of Question..."
-                                                value={this.state.nameOfQuestion}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Question Type</label>
-                                            <select 
-                                                className="form-control"
-                                                value={this.state.questionType}
-                                                onChange={(e) =>  this.onChangeQuestType(e.target.value)}
-                                            >
-                                                <option value="">Choose Type</option>
-                                                <option value="Multiple Choice">Multiple Choice</option>
-                                                <option value="Essay">Essay</option>
-                                            </select>
-                                        </div>
-                                        {   this.state.questionType == 'Multiple Choice' ?
-                                                this.state.choiceType.map((choice, key) => {
-                                                    return (
-                                                        <div className="row">
-                                                            <div class="col-6">
-                                                                <div className="form-group">
-                                                                    <label>Choice Type</label>
-                                                                    <select
-                                                                        type="text"
-                                                                        className="form-control"
-                                                                        value={choice}
-                                                                        disabled
-                                                                    >
-                                                                        <option value="">Choose</option>
-                                                                        {
-                                                                            this.state.choiceType.map((choiceVal, key) => {
-                                                                                return (
-                                                                                    <option key={key} value={choiceVal}>{choiceVal}</option>
-                                                                                )
-                                                                            })
-                                                                        }
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div className="form-group">
-                                                                    <label>Choice Name</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        className="form-control"
-                                                                        placeholder="Choice Name..."
-                                                                        value={this.state.choiceValue.filter((item) => {
-                                                                            return item.choice_type == choice
-                                                                        }).map((result) => {
-                                                                            return result.choice_name
-                                                                        })}
-                                                                        onChange={(e) => this.onChangeQuestName(choice, e.target.value) }
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })
-                                            : ''
-                                        }
-                                           <div className="form-group">
-                                            <label>Answer Of Question</label>
-                                            {
-                                                this.state.questionType == '' || this.state.questionType == 'Essay'
-                                                ?
-                                                <input
-                                                    type="text"
+                                <div className="col-lg-9 col-sm-12 col-md-12">
+                                    <div className="card shadow-md">
+                                        <div className="card-body">
+                                            <div className="form-group">
+                                                <label>Name Of Question</label>
+                                                <textarea
+                                                    height="250"
+                                                    width="500"
                                                     className="form-control"
-                                                    value={this.state.answerOfQuestion}
-                                                    placeholder="Answer Of Question..."
-                                                    onChange={(e) =>  this.setState({ answerOfQuestion : e.target.value })}
+                                                    onChange={(e) => this.setState({ nameOfQuestion : e.target.value })}
+                                                    placeholder="Name Of Question..."
+                                                    value={this.state.nameOfQuestion}
                                                 />
-                                                :
-                                                <select
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Question Type</label>
+                                                <select 
                                                     className="form-control"
-                                                    value={this.state.answerOfQuestion}
-                                                    onChange={(e) => this.setState({ answerOfQuestion : e.target.value })}
+                                                    value={this.state.questionType}
+                                                    onChange={(e) =>  this.onChangeQuestType(e.target.value)}
                                                 >
-                                                    <option value="">Choose</option>
-                                                    {
-                                                        this.state.choiceValue.filter((item) => { 
-                                                            return item.choice_name != 'A' 
-                                                        }).map((choiceVal, key) => {
-                                                            return (
-                                                                <option key={key} value={choiceVal.choice_type}>{choiceVal.choice_type}</option>
-                                                            )
-                                                        })
-                                                    }
+                                                    <option value="">Choose Type</option>
+                                                    <option value="Multiple Choice">Multiple Choice</option>
+                                                    <option value="Essay">Essay</option>
                                                 </select>
+                                            </div>
+                                            {   this.state.questionType == 'Multiple Choice' ?
+                                                    this.state.choiceType.map((choice, key) => {
+                                                        return (
+                                                            <div className="row">
+                                                                <div class="col-6">
+                                                                    <div className="form-group">
+                                                                        <label>Choice Type</label>
+                                                                        <select
+                                                                            type="text"
+                                                                            className="form-control"
+                                                                            value={choice}
+                                                                            disabled
+                                                                        >
+                                                                            <option value="">Choose</option>
+                                                                            {
+                                                                                this.state.choiceType.map((choiceVal, key) => {
+                                                                                    return (
+                                                                                        <option key={key} value={choiceVal}>{choiceVal}</option>
+                                                                                    )
+                                                                                })
+                                                                            }
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <div className="form-group">
+                                                                        <label>Choice Name</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="form-control"
+                                                                            placeholder="Choice Name..."
+                                                                            value={this.state.choiceValue.filter((item) => {
+                                                                                return item.choice_type == choice
+                                                                            }).map((result) => {
+                                                                                return result.choice_name
+                                                                            })}
+                                                                            onChange={(e) => this.onChangeQuestName(choice, e.target.value) }
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })
+                                                : ''
                                             }
+                                            <div className="form-group">
+                                                <label>Answer Of Question</label>
+                                                {
+                                                    this.state.questionType == '' || this.state.questionType == 'Essay'
+                                                    ?
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        value={this.state.answerOfQuestion}
+                                                        placeholder="Answer Of Question..."
+                                                        onChange={(e) =>  this.setState({ answerOfQuestion : e.target.value })}
+                                                    />
+                                                    :
+                                                    <select
+                                                        className="form-control"
+                                                        value={this.state.answerOfQuestion}
+                                                        onChange={(e) => this.setState({ answerOfQuestion : e.target.value })}
+                                                    >
+                                                        <option value="">Choose</option>
+                                                        {
+                                                            this.state.choiceValue.filter((item) => { 
+                                                                return item.choice_name != 'A' 
+                                                            }).map((choiceVal, key) => {
+                                                                return (
+                                                                    <option key={key} value={choiceVal.choice_type}>{choiceVal.choice_type}</option>
+                                                                )
+                                                            })
+                                                        }
+                                                    </select>
+                                                }
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="card-footer bg-light" style={{ 
-                                            display : 'flex',
-                                            justifyContent : 'space-around'
-                                        }}>
-                                        <div>
-                                            {
-                                                this.props.match.params.questionNumber > 1 ?
-                                                    <button onClick={async() => await this.onPage('previous')} className="btn btn-warning"><i className="fa fa-arrow-left"></i> Previous</button>
-                                                :
-                                                ''
-                                            }
-                                            <button onClick={async() => await this.deleteQuestion() } className={`btn btn-danger ml-4 ${ this.state.onDelete ? 'disabled btn-progress' : '' } `}><i className="fa fa-trash"></i> Delete</button>
-                                            <button onClick={async() => await this.saveQuestion() } className={`btn btn-primary ml-4 ${ this.state.onSubmit ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
-                                            {
-                                                this.props.match.params.questionNumber < this.state.listOfNumber.length?
-                                                    <button onClick={async() => await this.onPage('next')} className="btn btn-info ml-4"><i className="fa fa-arrow-right"></i> Next</button>
-                                                :
-                                                ''
-                                            }
+                                        <div className="card-footer bg-light" style={{ 
+                                                display : 'flex',
+                                                justifyContent : 'space-around'
+                                            }}>
+                                            <div>
+                                                {
+                                                    this.props.match.params.questionNumber > 1 ?
+                                                        <button onClick={async() => await this.onPage('previous')} className="btn btn-warning"><i className="fa fa-arrow-left"></i> Previous</button>
+                                                    :
+                                                    ''
+                                                }
+                                                <button onClick={async() => await this.deleteQuestion() } className={`btn btn-danger ml-4 ${ this.state.onDelete ? 'disabled btn-progress' : '' } `}><i className="fa fa-trash"></i> Delete</button>
+                                                <button onClick={async() => await this.saveQuestion() } className={`btn btn-primary ml-4 ${ this.state.onSubmit ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
+                                                {
+                                                    this.props.match.params.questionNumber < this.state.listOfNumber.length?
+                                                        <button onClick={async() => await this.onPage('next')} className="btn btn-info ml-4"><i className="fa fa-arrow-right"></i> Next</button>
+                                                    :
+                                                    ''
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
             </div>
         )
     }

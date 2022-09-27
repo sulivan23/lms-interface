@@ -48,7 +48,8 @@ class AvailableCourses extends Component {
         this.setState({ courses : courses.data });
     }
 
-    async detailCourse(courseId){
+    async detailCourse(courseId, e){
+        e.preventDefault();
         this.setState({ courseIdDtl : courseId });
     }
 
@@ -96,17 +97,17 @@ class AvailableCourses extends Component {
                     this.state.courses.length == 0 ? <div> <p className="text-center">No available courses found</p> </div> : ''
                 }
                 <div className="row">
-                    <div className="col-12 col-md-4 col-lg-4">
-                        { this.state.courses.map((course, i) => {
-                            return (
+                    { this.state.courses.map((course, i) => {
+                        return (
+                            <div className="col-lg-4 col-md-12 col-sm-12">
                                 <article key={i} className="article article-style-c">
-                                    <div className="article-details">
+                                    <div className="article-details" style={{ height : '300px' }}>
                                         <div className="article-category">
                                             <a>Due Date : { moment(new Date(course.due_date)).format('DD MMMM Y')}</a>
                                         </div>
                                         <div className="article-title">
                                             <h2>
-                                                <a href="#" onClick={async() => await this.detailCourse(course.id)}>
+                                                <a href="#" onClick={async(e) => await this.detailCourse(course.id, e)}>
                                                     {course.course_name}
                                                 </a>
                                             </h2>
@@ -129,9 +130,9 @@ class AvailableCourses extends Component {
                                         <button onClick={async(e) => this.takeCourse(course.id)} className="btn btn-primary my-3 w-100">Take Courses</button>
                                     </div>
                                 </article>
-                            )
-                        }) }
-                    </div>
+                            </div>
+                        )
+                    }) }
                     <DetailCourse
                         courseId={this.state.courseIdDtl}
                         onCloseModal={() => this.setState({ courseIdDtl : '' })}

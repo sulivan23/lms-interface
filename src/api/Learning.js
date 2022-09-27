@@ -98,3 +98,39 @@ export const quizSubmitAnswer = async(quizEmployeeId) => {
     });
     return submit.data;
 }
+
+export const enrollQuizContest = async(employeeId, quizContestId) => {
+    axios.defaults.withCredentials = true;
+    const enroll = await axios.post(url, {
+        type : 'enroll_quiz_contest',
+        data : {
+            employee_id : employeeId,
+            quiz_contest_id : quizContestId
+        }
+    });
+    return enroll.data;
+}
+
+export const quizContestAnswerQuestion = async(contestEmployeeId, contestQuestionId, answerOfQuestion) => {
+    axios.defaults.withCredentials = true;
+    const answer = await axios.post(url, {
+        type : 'quiz_contest_answer_question',
+        data : {
+            "contest_employee_id" : contestEmployeeId,
+            "contest_question_id" : contestQuestionId,
+            "answer_of_question" : answerOfQuestion
+        }
+    });
+    return answer.data;
+}
+
+export const quizContestSubmitAnswer = async(contestEmployeeId) => {
+    axios.defaults.withCredentials = true;
+    const submit = await axios.post(url, {
+        type : 'quiz_contest_submit_answer',
+        data : {
+            "contest_employee_id" : contestEmployeeId
+        }
+    });
+    return submit.data;
+}

@@ -86,7 +86,7 @@ class QuizPage extends Component {
                         { this.props.contentQuiz.status == null ? 'Start Quiz' 
                             : 
                             (this.props.contentQuiz.status == 'In Progress' 
-                            ? 'Continue Quiz' : 'You have finished this quiz') 
+                            ? 'Continue Quiz' : 'Re-take Quiz') 
                         }
                     </button>
                 </div>

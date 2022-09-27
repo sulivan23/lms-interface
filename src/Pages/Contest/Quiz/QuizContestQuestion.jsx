@@ -52,7 +52,7 @@ class QuizContestQuestions extends Component {
                 questionNumber : quest.data.question_number,
                 answerOfQuestion : quest.data.answer_of_question,
                 questionType : quest.data.question_type,
-                choiceValue : quest.data.quiz_multiple_choices,
+                choiceValue : quest.data.quiz_contest_multiple_choices,
                 isQuestionExists : true,
                 quizContestQuestionId : quest.data.id
             });

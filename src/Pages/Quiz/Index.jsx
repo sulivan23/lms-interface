@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import moment from "moment";
 import { Link } from "react-router-dom";
-import { getCourse } from "../../api/Courses";
+import { getCourse, getCoursesByOrg } from "../../api/Courses";
 import $ from "jquery";
 import swal from "sweetalert";
 import iziToast from "izitoast";
@@ -27,12 +27,14 @@ class Quiz extends Component {
             onSubmit : false,
             titleModal : 'Create Quiz',
             btnCreateQuestion : false,
-            permission : []
+            permission : [],
+            userData : {}
         }
     }
 
     async componentDidMount() {
-        await getPersonalInfo();
+        const { user } = await getPersonalInfo();
+        this.setState({ userData : user });
         await this.getQuiz();
         const permission = await getPermission({
             role : Cookies.get('role'),
@@ -43,6 +45,15 @@ class Quiz extends Component {
             return this.props.history.push('/home/404');  
         }
         this.setState({ permission : permission.data.permission.split(', ') });
+        if(this.state.coursesData.length == 0){
+            var course;
+            if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+                var course = await getCourse();
+            }else{
+                var course = await getCoursesByOrg(this.state.userData.organization.organization_code)
+            }
+            this.setState({ coursesData : course.data });
+        }
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -65,8 +76,6 @@ class Quiz extends Component {
     }
 
     async initModal() {
-        const courses = await getCourse();
-        this.setState({ coursesData : courses.data });
         $("#modalQuiz").modal('show');
     }
 
@@ -93,7 +102,7 @@ class Quiz extends Component {
             const data = {
                 title : this.state.title,
                 course_id : this.state.courseId,
-                descriptiion : this.state.description,
+                description : this.state.description,
                 quiz_time : this.state.quizTime,
                 number_of_question : this.state.numberOfQuestion,
                 created_by : Cookies.get('userId'),

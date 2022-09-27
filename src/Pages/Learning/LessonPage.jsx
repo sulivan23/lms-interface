@@ -21,6 +21,9 @@ class LessonPage extends Component {
 
     async showContent() {
         const lessonContent = await getLessonContentById(this.props.lessonDetailId);
+        if(lessonContent.data == null){
+            return this.props.onMoveUrl('/home/404');
+        }
         this.props.changeContent(lessonContent.data.lesson_detail_title, lessonContent.data.lesson_content);
     }
 

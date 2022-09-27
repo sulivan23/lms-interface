@@ -1,12 +1,11 @@
 import Cookies from "js-cookie";
 import React, { Component } from "react";
 import AvailableCourses from "./AvailableCourses";
+import AvailableQuizContest from "./AvailableQuizContest";
 import DataInfo from "./DataInfo";
 import KeyPerformance from "./KeyPerformance";
 
 export class Dashboard extends Component {
-
-
 
   render() {
     return (
@@ -21,6 +20,7 @@ export class Dashboard extends Component {
             <div>
               <KeyPerformance/>
               <AvailableCourses/>
+              <AvailableQuizContest/>
             </div>
           }
         </section>

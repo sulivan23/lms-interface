@@ -7,7 +7,7 @@ import moment from "moment";
 import { createLesson, deleteLesson, getLesson, getLessonById, getLessonContentByLesson, updateLesson } from "../../api/Lessons";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
-import { getCourse } from "../../api/Courses";
+import { getCourse, getCoursesByOrg } from "../../api/Courses";
 import SubLessons from "./SubLessons";
 import { getPermission } from "../../api/Users";
 
@@ -26,12 +26,14 @@ class Lessons extends Component {
             lessonContent : [],
             loadingLessonContent : false,
             lesson_id_content : '',
-            permission : []
+            permission : [],
+            userData : {}
         };
     }
 
     async componentDidMount() {
-        await getPersonalInfo();
+        const { user } = await getPersonalInfo();
+        this.setState({ userData : user });
         await this.getLesson();
         const permission = await getPermission({
             role : Cookies.get('role'),
@@ -42,6 +44,15 @@ class Lessons extends Component {
             return this.props.history.push('/home/404');  
         }
         this.setState({ permission : permission.data.permission.split(', ') });
+        if(this.state.course.length == 0){
+            var course;
+            if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+                var course = await getCourse();
+            }else{
+                var course = await getCoursesByOrg(this.state.userData.organization.organization_code)
+            }
+            this.setState({ course : course.data });
+        }
         $("#dataTable").DataTable({
             order : [['1', 'desc']],
             pageLength : 10
@@ -65,8 +76,6 @@ class Lessons extends Component {
     }
 
     async initModal(){
-        const course = await getCourse();
-        this.setState({ course : course.data });
         $("#modalLesson").modal('show');
     }
 

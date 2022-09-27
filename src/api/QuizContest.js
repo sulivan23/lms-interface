@@ -70,3 +70,33 @@ export const setWinnerQuizContest = async(data) => {
     const makeWinner = await axios.post(`${url}/winner`, data);
     return makeWinner.data;
 }
+
+export const getMyQuizContestByEmployee = async(quizContestId, employeeId) => {
+    axios.defaults.withCredentials = true;
+    const quizContest = await axios.post(`${url}/my_contest_employee`, {
+        quiz_contest_id : quizContestId,
+        employee_id : employeeId
+    });
+    return quizContest.data;
+}
+
+export const getQuestionQuizContestByEmp = async(quizContestEmployeeId, questionNumber) => {
+    axios.defaults.withCredentials = true;
+    const question = await axios.post(`${url}/question/employee`, {
+        quiz_contest_employee_id : quizContestEmployeeId,
+        question_number : questionNumber
+    });
+    return question.data;
+}
+
+export const getResultQuizContest = async(param) => {
+    axios.defaults.withCredentials = true;
+    const result = await axios.post(`${url}/result`, param);
+    return result.data;
+}
+
+export const getWinnerQuizContest = async() => {
+    axios.defaults.withCredentials = true;
+    const winner = await axios.post(`${url}/winner`);
+    return winner.data;
+}

@@ -1,5 +1,7 @@
+import Cookies from "js-cookie";
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { getPersonalInfo } from "../../api/Helper";
 import Content from "./Content";
 import ListOfContent from "./listOfContent";
 
@@ -12,6 +14,10 @@ class Learning extends Component {
             courseId : '',
             refreshContent : false
         }
+    }
+
+    async componentDidMount() {
+        await getPersonalInfo();
     }
 
     setCourseEmployeeId(id) {
@@ -45,6 +51,7 @@ class Learning extends Component {
                                 <ListOfContent
                                     type={this.props.match.params.type}
                                     id={this.props.match.params.id}
+                                    history={(url) => this.onHistoryPush(url)}
                                     courseId={this.props.match.params.courseId}
                                     setCourseEmp={(id) => this.setCourseEmployeeId(id)}
                                     refreshContent={this.state.refreshContent}

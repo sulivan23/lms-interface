@@ -88,6 +88,7 @@ class Content extends Component {
                                     content : this.state.contentLesson,
                                     lessonLoaded : this.state.lessonLoaded
                                 }}
+                                onMoveUrl={(url) => this.props.history(url)}
                                 changeContent={(title, value, nextLesson) => this.changeContentLesson(title, value, nextLesson)}
                             />
                         : 

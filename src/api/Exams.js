@@ -85,3 +85,18 @@ export const getMyExamEmpByExam = async(examId, employeeId) => {
     });
     return exam.data;
 }
+
+export const getQuestionByExamEmployee = async(examEmployeeId, questionNumber) => {
+    axios.defaults.withCredentials = true;
+    const quest = await axios.post(`${urlQuest}/exam_employee`, {
+        exam_employee_id : examEmployeeId,
+        question_number : questionNumber
+    });
+    return quest.data;
+}
+
+export const getResultExam = async(param) => {
+    axios.defaults.withCredentials = true;
+    const result = await axios.post(`${url}/result`, param);
+    return result.data;
+}

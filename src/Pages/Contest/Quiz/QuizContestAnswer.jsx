@@ -1,39 +1,35 @@
 import Cookies from "js-cookie";
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { getMyExamEmpByExam, getQuestionByExamEmployee } from "../../api/Exams";
-import { examAnswerQuestion, examSubmitAnswer } from "../../api/Learning";
 import iziToast from "izitoast";
-import { getPersonalInfo, handleMessage } from "../../api/Helper";
+import { handleMessage } from "../../../api/Helper";
+import { quizAnswerQuestion, quizContestAnswerQuestion, quizContestSubmitAnswer, quizSubmitAnswer } from "../../../api/Learning";
 import Countdown, { zeroPad } from 'react-countdown';
 import moment from "moment";
 import swal from "sweetalert";
+import { getMyQuizContestByEmployee, getQuestionQuizContestByEmp } from "../../../api/QuizContest";
 
-class ExamAnswer extends Component { 
+class QuizContestAnswer extends Component { 
 
     constructor(props){
         super(props);
         this.state = {
-            examTitle : '',
+            quizContestTitle : '',
             listOfNumber : [],
             nameOfQuestion : '',
-            courseId : '',
             questionNumber : '',
             answerOfQuestion : '',
             questionType : '',
-            examEmployeeId : '',
+            quizContestEmployeeId : '',
             isQuestionExists : '',
-            examQuestionId : '',
+            quizContestQuestionId : '',
             choiceValue : [],
-            onSave : false,
-            onSubmit : false,
             maxTime : '',
             isTimeRunOut : false
         }
     }
 
     async componentDidMount() {
-        await getPersonalInfo();
         await this.onLoadQuestion();
     }
 
@@ -54,56 +50,59 @@ class ExamAnswer extends Component {
             questionNumber : '',
             answerOfQuestion : '',
             questionType : '',
-            examQuestionId : '',
-            courseId : '',
+            quizContestQuestionId : '',
+            onSave : false,
             onSubmit : false,
+            maxTime : '',
+            isTimeRunOut : false
         });
     }
 
     async onLoadQuestion() {
-        const exam = await getMyExamEmpByExam(this.props.match.params.examId, Cookies.get('userId'));
-        this.setState({ 
-            examTitle : exam.data.title, 
-            examEmployeeId : exam.data.course.exam_employee_id,
-            courseId : exam.data.course.id,
-            maxTime : exam.data.course.max_time
-        });
-        if(exam.data == null){
-            return this.props.history.push('/home/404');
-        }
-        if(exam.data.course.status_exams == 'Done'){
-            this.props.history.push(`/home/learning/${this.state.courseId}/exam/${this.props.match.params.examId}`)
-        }
-        const quest = await getQuestionByExamEmployee(this.state.examEmployeeId, this.props.match.params.questionNumber);
-        var i;
-        if(this.props.match.params.questionNumber < 1 || this.props.match.params.questionNumber > exam.data.number_of_question){
-            this.props.history.push('/home/exams');
-        }
-        if(this.state.listOfNumber.length < exam.data.number_of_question){
-        for(i=1; i<=exam.data.number_of_question; i++){
-                this.state.listOfNumber.push(i);
-            }
-        }
-        if(quest.data.exam != null){
+        try {
+            const quiz = await getMyQuizContestByEmployee(this.props.match.params.quizContestId, Cookies.get('userId'));
             this.setState({ 
-                nameOfQuestion : quest.data.exam.exams_questions[0].name_of_question,
-                questionNumber : quest.data.exam.exams_questions[0].question_number,
-                answerOfQuestion : quest.data.exam.exams_questions[0].answer_of_question,
-                questionType : quest.data.exam.exams_questions[0].question_type,
-                choiceValue : quest.data.exam.exams_questions[0].exams_multiple_choices,
-                isQuestionExists : true,
-                examQuestionId : quest.data.exam.exams_questions[0].id
+                quizContestTitle : quiz.data.quiz_contest.title, 
+                quizContestEmployeeId : quiz.data.id,
+                maxTime : quiz.data.max_time
             });
-        }else{
-            this.setState({ isQuestionExists : false });
+            const quest = await getQuestionQuizContestByEmp(this.state.quizContestEmployeeId, this.props.match.params.questionNumber);
+            var i;
+            if(this.props.match.params.questionNumber < 1 || this.props.match.params.questionNumber > quiz.data.number_of_question){
+                this.props.history.push('/home/quiz_contest');
+            }
+            if(this.state.listOfNumber.length < quiz.data.quiz_contest.number_of_question){
+                for(i=1; i<=quiz.data.quiz_contest.number_of_question; i++){
+                    this.state.listOfNumber.push(i);
+                }
+            }
+            if(quest.data.quiz_contest != null){
+                this.setState({ 
+                    nameOfQuestion : quest.data.quiz_contest.quiz_contest_questions[0].name_of_question,
+                    questionNumber : quest.data.quiz_contest.quiz_contest_questions[0].question_number,
+                    answerOfQuestion : quest.data.quiz_contest.quiz_contest_questions[0].answer_of_question,
+                    questionType : quest.data.quiz_contest.quiz_contest_questions[0].question_type,
+                    choiceValue : quest.data.quiz_contest.quiz_contest_questions[0].quiz_contest_multiple_choices,
+                    isQuestionExists : true,
+                    quizContestQuestionId : quest.data.quiz_contest.quiz_contest_questions[0].id
+                });
+            }else{
+                this.setState({ isQuestionExists : false });
+            }
+        } catch(err) {
+            iziToast.error({
+                title : 'Error!',
+                position : 'topRight'
+            })
+            // this.props.history.push('/home/404');
         }
     }
 
     async onPage(type){
         if(type == 'next'){
-            return this.props.history.push(`/home/exam_answer/${this.props.match.params.examId}/${parseFloat(this.props.match.params.questionNumber) + parseFloat(1)}`);
+            return this.props.history.push(`/home/quiz_contest_answer/${this.props.match.params.quizContestId}/${parseFloat(this.props.match.params.questionNumber) + parseFloat(1)}`);
         }else{
-            this.props.history.push(`/home/exam_answer/${this.props.match.params.examId}/${parseFloat(this.props.match.params.questionNumber) - parseFloat(1)}`);
+            this.props.history.push(`/home/quiz_contest_answer/${this.props.match.params.quizContestId}/${parseFloat(this.props.match.params.questionNumber) - parseFloat(1)}`);
         }
     }
 
@@ -111,7 +110,7 @@ class ExamAnswer extends Component {
         try {
             this.setState({ onSave : true });
             setTimeout(async() => {
-                const answer = await examAnswerQuestion(this.state.examEmployeeId, this.state.examQuestionId, this.state.answerOfQuestion);
+                const answer = await quizContestAnswerQuestion(this.state.quizContestEmployeeId, this.state.quizContestQuestionId, this.state.answerOfQuestion);
                 if(answer.is_error == false){
                     iziToast.success({
                         title : 'Success!',
@@ -136,10 +135,10 @@ class ExamAnswer extends Component {
         }
     }
 
-    async confirmSubmitAnswer() {
+    async confirmSubmitAnswer(){
         swal({
             title: "Are you sure?",
-            text: "Please re-check your exam answer before submit",
+            text: "Please re-check your quiz answer before submit",
             icon: "info",
             buttons: true,
             dangerMode: true,
@@ -154,14 +153,14 @@ class ExamAnswer extends Component {
         try {
             this.setState({ onSubmit : true });
             setTimeout(async() => {
-                const submit = await examSubmitAnswer(this.state.examEmployeeId);
+                const submit = await quizContestSubmitAnswer(this.state.quizContestEmployeeId);
                 if(submit.is_error == false){
                     iziToast.success({
                         title : 'Success!',
                         message : handleMessage(submit.message),
                         position : 'topRight'
                     });
-                    this.props.history.push(`/home/learning/${this.state.courseId}/exam/${this.props.match.params.examId}`)
+                    this.props.history.push(`/home/result_quiz_contest`);
                 }else {
                     iziToast.warning({
                         message : handleMessage(submit.message),
@@ -190,16 +189,17 @@ class ExamAnswer extends Component {
             }
         };
 
+        console.log(moment(this.state.maxTime).format('Y-MM-DD HH:mm:ss'));
         return (
             <div className="main-content">
                 <section className="section">
                     <div className="section-header">
-                        <h1>Exam : {this.state.examTitle} </h1>
+                        <h1>Quiz : {this.state.quizContestTitle} </h1>
                         <div className="section-header-breadcrumb">
                             <div className="breadcrumb-item active">
                                 <Link to="/home">Dashboard</Link>
                             </div>
-                            <div className="breadcrumb-item">Exam Answer</div>
+                            <div className="breadcrumb-item">Quiz Contest Answer</div>
                         </div>
                     </div>
                     <div className="section-body">
@@ -221,7 +221,7 @@ class ExamAnswer extends Component {
                                                 this.state.listOfNumber.map((list, number) => {
                                                     return (
                                                         // <div class="col-3">
-                                                            <Link key={number} to={`/home/exam_answer/${this.props.match.params.examId}/${list}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
+                                                            <Link key={number} to={`/home/quiz_contest_answer/${this.props.match.params.quizContestId}/${list}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
                                                         // </div>
                                                     )
                                                 })           
@@ -281,7 +281,7 @@ class ExamAnswer extends Component {
                                                 :
                                                 ''
                                             }
-                                                <button onClick={async() => await this.saveAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSave ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
+                                            <button onClick={async() => await this.saveAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSave ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
                                             {
                                                 this.props.match.params.questionNumber < this.state.listOfNumber.length?
                                                         <button onClick={async() => await this.onPage('next')} className="btn btn-info ml-4"><i className="fa fa-arrow-right"></i> Next</button>
@@ -300,4 +300,4 @@ class ExamAnswer extends Component {
     }
 }
 
-export default ExamAnswer;
+export default QuizContestAnswer;

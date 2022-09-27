@@ -5,10 +5,9 @@ import iziToast from "izitoast";
 import moment from "moment";
 import { getPersonalInfo, handleMessage } from "../../../api/Helper";
 import Cookies from "js-cookie";
-import { getPermission } from "../../../api/Users";
+import { getPermission, getUsers } from "../../../api/Users";
 import { Link } from "react-router-dom";
-import { createQuizContest, deleteQuizContest, getPrizeByQuizContest, getQuizContest, getQuizContestById, updateQuizContest } from "../../../api/QuizContest";
-import { deleteQuiz } from "../../../api/Quiz";
+import { createQuizContest, deleteQuizContest, getPrizeByQuizContest, getQuizContest, getQuizContestById, setWinnerQuizContest, updateQuizContest } from "../../../api/QuizContest";
 
 class QuizContest extends Component {
 
@@ -27,7 +26,12 @@ class QuizContest extends Component {
             prize : [],
             permission : [],
             titleModal : 'Create Quiz Contest',
-            onSubmit : false
+            onSubmit : false,
+            updateWinner : false,
+            quizContestIdWinner : '',
+            listUser : '',
+            winnerData : [],
+            userId : '',
         }
     }
 
@@ -71,6 +75,12 @@ class QuizContest extends Component {
             this.setState({ prize : prizeData });
             await this.initModal();
         }
+        if(prevState.updateWinner != this.state.updateWinner && this.state.updateWinner == true){
+            const user = await getUsers();
+            const prize = await getPrizeByQuizContest(this.state.quizContestIdWinner);
+            this.setState({ prize : prize.data, listUser : user.data });
+            $("#modalWinner").modal('show');
+        }
     }
 
     async initModal(){
@@ -85,10 +95,19 @@ class QuizContest extends Component {
             dueDate : '',
             numberOfQuestion : '',
             quizContestId : '',
+            updateWinner : false,
             prize : [],
             titleModal : 'Create Quiz Contest'
         });
         $("#modalQuizContest").modal('hide');
+    }
+
+    async closeModalWinner() {
+        this.setState({ 
+            quizContestIdWinner : '',
+            updateWinner : false
+        })
+        $("#modalWinner").modal('hide');
     }
 
     async saveQuizContest() {
@@ -189,6 +208,44 @@ class QuizContest extends Component {
         this.setState({ prize : arrValue });
     }
 
+    onChangeWinner(userId, prizeId) {
+        var arrWinner = this.state.winnerData;
+        arrWinner = [...arrWinner, {
+            prize_id : prizeId,
+            employee_id : userId
+        }];
+        this.setState({ winnerData : arrWinner, userId : userId });
+    }
+
+    async saveWinner() {
+        try {
+            const data = {
+                quiz_contest_id : this.state.quizContestIdWinner,
+                winner : this.state.winnerData
+            };
+            this.setState({ onSubmit : true });
+            setTimeout(async() => {
+                const saveWinner = await setWinnerQuizContest(data);
+                if(saveWinner.is_error == false){
+                    iziToast.success({
+                        title : 'Success!',
+                        message : handleMessage(saveWinner.message),
+                        position : 'topRight'
+                    });
+                    await this.closeModalWinner();
+                }else {
+                    iziToast.warning({
+                        message : handleMessage(saveWinner.message),
+                        position : 'topRight'
+                    });
+                }
+                this.setState({ onSubmit : false });
+            }, 1000);
+        } catch(err){
+            console.log(err);
+        }
+    } 
+
     render() {
         return (
             <div className="main-content">
@@ -219,6 +276,14 @@ class QuizContest extends Component {
                                                 <Link to={`/home/quiz_contest/${this.state.quizContestIdRadio}/1`} className="ml-2 btn btn-info mb-4"><i className="fa fa-edit"></i> 
                                                     &nbsp;Quiz Contest Question
                                                 </Link>
+                                            :
+                                            ''
+                                        }
+                                        {
+                                            this.state.btnCreateQuestion && this.state.permission.includes('Update') ? 
+                                                <button onClick={() => this.setState({ quizContestIdWinner : this.state.quizContestIdRadio, updateWinner : true  })} className="ml-2 btn btn-primary mb-4"><i className="fa fa-trophy"></i> 
+                                                    &nbsp;Set Winner
+                                                </button>
                                             :
                                             ''
                                         }
@@ -283,14 +348,83 @@ class QuizContest extends Component {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div id="modalQuizContest" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div className="modal-dialog" role="document">
+                                        <div id="modalWinner" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div className='modal-dialog modal-lg' role="document">
                                                 <div className="modal-content">
                                                     <div className="modal-header">
-                                                    <h5 className="modal-title" id="exampleModalLabel">{this.state.titleModal}</h5>
-                                                    <button type="button" className="btn btn-warning" onClick={async() => this.closeModal()}>
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
+                                                        <h5 className="modal-title" id="exampleModalLabel">Set Winner Quiz</h5>
+                                                        <button type="button" className="btn btn-warning" onClick={async() => this.closeModalWinner()}>
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div className="modal-body">
+                                                        <form>
+                                                            {
+                                                                this.state.prize.map((val, i) => {
+                                                                    return (
+                                                                        <div className="row">
+                                                                            <div className="col-4">
+                                                                                <div className="form-group">
+                                                                                    <label>Winner Type</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        value={val.winner_type}
+                                                                                        disabled
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="col-4">
+                                                                                <div className="form-group">
+                                                                                    <label>Prize</label>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        className="form-control"
+                                                                                        placeholder="Prize..."
+                                                                                        value={val.prize_description}
+                                                                                        disabled={true}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="col-4">
+                                                                                <div className="form-group">
+                                                                                    <label>Winner</label>
+                                                                                    <select
+                                                                                        className="form-control"
+                                                                                        onChange={(e) => this.onChangeWinner(e.target.value, val.id)}
+                                                                                    >
+                                                                                        <option value="">Select Winner</option>
+                                                                                        {
+                                                                                            this.state.listUser.map((user, key) => {
+                                                                                                return(
+                                                                                                    <option key={key} value={user.id}>{user.name}</option>
+                                                                                                )
+                                                                                            })
+                                                                                        }
+                                                                                    </select>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </form>
+                                                    </div>
+                                                    <div className="modal-footer">
+                                                        <button type="button" className="btn btn-warning" onClick={async() => this.closeModalWinner()}>Close</button>
+                                                        <button type="button" className="btn btn-primary" onClick={async() => await this.saveWinner()} >{this.state.onSubmit ? <div><i className="fa fa-spinner fa-spin"></i> Loading...</div> : 'Submit'}</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="modalQuizContest" className="modal fade shadow-lg my-4" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                            <div className='modal-dialog' role="document">
+                                                <div className="modal-content">
+                                                    <div className="modal-header">
+                                                        <h5 className="modal-title" id="exampleModalLabel">{this.state.titleModal}</h5>
+                                                        <button type="button" className="btn btn-warning" onClick={async() => this.closeModal()}>
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
                                                     </div>
                                                     <div className="modal-body">
                                                         <form>
@@ -346,7 +480,7 @@ class QuizContest extends Component {
                                                                 this.state.winnerType.map((winnerType, i) => {
                                                                     return (
                                                                         <div className="row">
-                                                                            <div class="col-6">
+                                                                            <div className="col-6">
                                                                                 <div className="form-group">
                                                                                     <label>Winner Type</label>
                                                                                     <input
@@ -357,7 +491,7 @@ class QuizContest extends Component {
                                                                                     />
                                                                                 </div>
                                                                             </div>
-                                                                            <div class="col-6">
+                                                                            <div className="col-6">
                                                                                 <div className="form-group">
                                                                                     <label>Type The Prize</label>
                                                                                     <input
@@ -370,6 +504,7 @@ class QuizContest extends Component {
                                                                                             return result.prize_description
                                                                                         })}
                                                                                         onChange={(e) => this.onChangePrize(winnerType, e.target.value) }
+                                                                                        disabled={this.state.updateWinner == true ? true : false}
                                                                                     />
                                                                                 </div>
                                                                             </div>

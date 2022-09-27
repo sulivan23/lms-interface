@@ -27,6 +27,10 @@ import QuizAnswer from "./Pages/Quiz/QuizAnswer";
 import ExamAnswer from "./Pages/Exams/ExamAnswer";
 import MyCourses from "./Pages/Courses/MyCourses";
 import Learning from "./Pages/Learning/Index";
+import ReportScore from "./Pages/Reporting/Score";
+import ReportKeyPerformance from "./Pages/Reporting/KeyPerformance";
+import SettingKeyPerformance from "./Pages/Settings/KeyPerformance";
+import QuizContestAnswer from "./Pages/Contest/Quiz/QuizContestAnswer";
 
 const history = React.lazy(() => import('./history'));
 
@@ -67,20 +71,27 @@ function App() {
               <Route path="/home/exams/:examId/:questionNumber" exact component={ExamQuestions} />
               <Route path="/home/my_exams" exact component={MyExams} />
               <Route path="/home/result_exams" exact component={ResultExams} />
-              <Route path="/home/exam_answer/:examId/:questionNumber" exact component={ExamAnswer} />
+              <Route path="/home/exam_answer/:examId/:questionNumber/:result?" exact component={ExamAnswer} />
               {/* Quiz */}
               <Route path="/home/quiz" exact component={Quiz} />
               <Route path="/home/quiz/:quizId/:questionNumber" exact component={QuizQuestions} />
               <Route path="/home/my_quiz" exact component={MyQuiz} />
               <Route path="/home/result_quiz" exact component={ResultQuiz} />
-              <Route path="/home/quiz_answer/:quizId/:questionNumber" exact component={QuizAnswer} />
+              <Route path="/home/quiz_answer/:quizId/:questionNumber/:result?" exact component={QuizAnswer} />
               {/* Quiz Contest */}
               <Route path="/home/quiz_contest" exact component={QuizContest} />
               <Route path="/home/result_quiz_contest" exact component={ResultQuizContest} />
               <Route path="/home/quiz_contest/:quizContestId/:questionNumber" exact component={QuizContestQuestion} />
               <Route path="/home/winner_quiz_contest" exact component={WinnerQuizContest} />
+              <Route path="/home/quiz_contest_answer/:quizContestId/:questionNumber/:result?" exact component={QuizContestAnswer} />
               {/* Learning */}
               <Route path="/home/learning/:courseId/:type/:id" exact component={Learning} />
+              {/* Data Reporting */}
+              <Route path="/home/reporting/score" exact component={ReportScore} />
+              <Route path="/home/reporting/kpi" exact component={ReportKeyPerformance} />
+              {/* Settings */}
+              <Route path="/home/settings/kpi" exact component={SettingKeyPerformance} />
+              {/* 404 Not Found */}
               <Route path="*" component={Error404} />
             </Switch>
             </React.Suspense>
