@@ -24,6 +24,9 @@ class ListOfContent extends Component {
 
     async getContent() {
         const content = await getListContent(Cookies.get('userId'), this.props.courseId);
+        if(content.data.lessons.length == 0 && content.data.quiz.length == 0 && content.data.exams.length == 0){
+            this.props.history('/home/404');
+        }
         this.setState({
             lessonContent : content.data.lessons,
             listQuiz : content.data.quiz,

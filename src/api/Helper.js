@@ -71,3 +71,13 @@ export const getPersonalInfo = async() => {
         return { user : user.data };
     }
 }
+
+export const getKeyValue = (object) => {
+    return Object.keys(object).reduce(function (result, key) {
+        return result.concat(
+            object[key] && typeof object[key] === 'object' ?
+            getKeyValue(object[key]) :
+            [[key, object[key]]]
+        );
+    }, []);
+}

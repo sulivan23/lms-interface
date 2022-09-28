@@ -2,8 +2,8 @@ import Cookies from "js-cookie";
 import React, { Component } from "react";
 import AvailableCourses from "./AvailableCourses";
 import AvailableQuizContest from "./AvailableQuizContest";
-import DataInfo from "./DataInfo";
 import KeyPerformance from "./KeyPerformance";
+import ReportDashboard from "./ReportDashboard";
 
 export class Dashboard extends Component {
 
@@ -14,15 +14,15 @@ export class Dashboard extends Component {
           <div className="section-header">
             <h1>Dashboard</h1>
           </div>
-          { Cookies.get('role') == 'A' ?
-            <DataInfo/>
-            : 
-            <div>
-              <KeyPerformance/>
-              <AvailableCourses/>
-              <AvailableQuizContest/>
-            </div>
+          {
+            Cookies.get('role') == 'CMO' 
+            ?
+            <KeyPerformance/>
+            :
+            <ReportDashboard />
           }
+          <AvailableCourses/>
+          <AvailableQuizContest/>
         </section>
       </div>
     );

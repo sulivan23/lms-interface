@@ -27,10 +27,10 @@ import QuizAnswer from "./Pages/Quiz/QuizAnswer";
 import ExamAnswer from "./Pages/Exams/ExamAnswer";
 import MyCourses from "./Pages/Courses/MyCourses";
 import Learning from "./Pages/Learning/Index";
-import ReportScore from "./Pages/Reporting/Score";
 import ReportKeyPerformance from "./Pages/Reporting/KeyPerformance";
 import SettingKeyPerformance from "./Pages/Settings/KeyPerformance";
 import QuizContestAnswer from "./Pages/Contest/Quiz/QuizContestAnswer";
+import ReportCourse from "./Pages/Reporting/Course";
 
 const history = React.lazy(() => import('./history'));
 
@@ -87,8 +87,8 @@ function App() {
               {/* Learning */}
               <Route path="/home/learning/:courseId/:type/:id" exact component={Learning} />
               {/* Data Reporting */}
-              <Route path="/home/reporting/score" exact component={ReportScore} />
-              <Route path="/home/reporting/kpi" exact component={ReportKeyPerformance} />
+              <Route path="/home/reporting/course" exact component={ReportCourse} />
+              <Route path="/home/reporting/performance" exact component={ReportKeyPerformance} />
               {/* Settings */}
               <Route path="/home/settings/kpi" exact component={SettingKeyPerformance} />
               {/* 404 Not Found */}

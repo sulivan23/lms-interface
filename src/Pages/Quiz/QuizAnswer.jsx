@@ -20,13 +20,16 @@ class QuizAnswer extends Component {
             courseId : '',
             questionNumber : '',
             answerOfQuestion : '',
+            correctAnswer : '',
+            isCorrect : '',
             questionType : '',
             quizEmployeeId : '',
             isQuestionExists : '',
             quizQuestionId : '',
             choiceValue : [],
             maxTime : '',
-            isTimeRunOut : false
+            isTimeRunOut : false,
+            result : typeof this.props.match.params.result != 'undefined' ? true : false
         }
     }
 
@@ -40,7 +43,7 @@ class QuizAnswer extends Component {
             await this.resetState();
             await this.onLoadQuestion();
         }
-        if(prevState.isTimeRunOut == false && this.state.isTimeRunOut == true){
+        if(prevState.isTimeRunOut == false && this.state.isTimeRunOut == true && this.state.result == false){
             await this.submitAnswer();
         }
     }
@@ -69,7 +72,16 @@ class QuizAnswer extends Component {
                 courseId : quiz.data.course.id,
                 maxTime : quiz.data.course.max_time
             });
-            const quest = await getQuestionByQuizEmployee(this.state.quizEmployeeId, this.props.match.params.questionNumber);
+            if(quiz.data == null){
+                return this.props.history.push('/home/404');
+            }
+            if(quiz.data.course.status_quiz == 'Done' && this.state.result == false){
+                this.props.history.push(`/home/learning/${this.state.courseId}/quiz/${this.props.match.params.quizId}`)
+            }
+            if(quiz.data.course.status_quiz != 'Done' && this.state.result == true){
+                this.props.history.push(`/home/learning/${this.state.courseId}/quiz/${this.props.match.params.quizId}`)
+            }
+            const quest = await getQuestionByQuizEmployee(this.state.quizEmployeeId, this.props.match.params.questionNumber, this.state.result);
             var i;
             if(this.props.match.params.questionNumber < 1 || this.props.match.params.questionNumber > quiz.data.number_of_question){
                 this.props.history.push('/home/quiz');
@@ -89,10 +101,17 @@ class QuizAnswer extends Component {
                     isQuestionExists : true,
                     quizQuestionId : quest.data.quiz.quiz_questions[0].id
                 });
+                if(typeof quest.data.quiz.quiz_questions[0].correct_answer != 'undefined'){
+                    this.setState({ 
+                        correctAnswer : quest.data.quiz.quiz_questions[0].correct_answer,
+                        isCorrect : quest.data.quiz.quiz_questions[0].is_correct
+                    });
+                }
             }else{
                 this.setState({ isQuestionExists : false });
             }
         } catch(err) {
+            console.log(err);
             iziToast.error({
                 title : 'Error!',
                 position : 'topRight'
@@ -103,9 +122,9 @@ class QuizAnswer extends Component {
 
     async onPage(type){
         if(type == 'next'){
-            return this.props.history.push(`/home/quiz_answer/${this.props.match.params.quizId}/${parseFloat(this.props.match.params.questionNumber) + parseFloat(1)}`);
+            return this.props.history.push(`/home/quiz_answer/${this.props.match.params.quizId}/${parseFloat(this.props.match.params.questionNumber) + parseFloat(1)}${this.state.result == true ? '/result' : ''}`);
         }else{
-            this.props.history.push(`/home/quiz_answer/${this.props.match.params.quizId}/${parseFloat(this.props.match.params.questionNumber) - parseFloat(1)}`);
+            this.props.history.push(`/home/quiz_answer/${this.props.match.params.quizId}/${parseFloat(this.props.match.params.questionNumber) - parseFloat(1)}${this.state.result == true ? '/result' : ''}`);
         }
     }
 
@@ -208,11 +227,18 @@ class QuizAnswer extends Component {
                     <div className="section-body">
                         <h2 className="section-title">Question Number : {this.props.match.params.questionNumber}</h2>
                         <p className="text-bold">
-                            Time Remaining :  {' '}
-                            <Countdown
-                                date={moment(this.state.maxTime).format('Y-MM-DD HH:mm:ss')}
-                                renderer={renderer}
-                            />
+                            {
+                                this.state.result == false ? 'Time remaining : ' : ''
+                            }
+                            { 
+                                this.state.result == false ?
+                                    <Countdown
+                                        date={moment(this.state.maxTime).format('Y-MM-DD HH:mm:ss')}
+                                        renderer={renderer}
+                                    />
+                                :
+                                ''
+                            }
                         </p>
                         <div className="row">
                             <div className="col-lg-3 col-sm-12 col-md-12">
@@ -224,7 +250,7 @@ class QuizAnswer extends Component {
                                                 this.state.listOfNumber.map((list, number) => {
                                                     return (
                                                         // <div class="col-3">
-                                                            <Link key={number} to={`/home/quiz_answer/${this.props.match.params.quizId}/${list}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
+                                                            <Link key={number} to={`/home/quiz_answer/${this.props.match.params.quizId}/${list}${this.state.result == true ? '/result' : ''}`} className={`${this.props.match.params.questionNumber == list ? 'btn btn-primary' : 'btn btn-light'} my-1 ml-1 col-3 w-100 font-weight-bold`}>{list}</Link>
                                                         // </div>
                                                     )
                                                 })           
@@ -248,25 +274,81 @@ class QuizAnswer extends Component {
                                                 this.state.questionType  == 'Multiple Choice' ?
                                                     this.state.choiceValue.map((choice, key) => {
                                                         return(
-                                                            <p className="text-primary">
+                                                            <p 
+                                                            className=
+                                                                {`${this.state.result == false || this.state.answerOfQuestion != choice.choice_type ? 
+                                                                    'text-primary' 
+                                                                : 
+                                                                'text-white'}
+                                                                 w-50 p-1
+                                                                 ${this.state.answerOfQuestion == choice.choice_type  ?
+                                                                        this.state.isCorrect == 'Y' ? ' bg-success' 
+                                                                    : 
+                                                                    'bg-danger'
+                                                                :
+                                                                choice.choice_type == this.state.correctAnswer ?
+                                                                    this.state.isCorrect == 'T' ?
+                                                                        'text-white bg-success'
+                                                                    :
+                                                                    ''
+                                                                :
+                                                                '' }`}>
                                                                 <input 
                                                                     checked={this.state.answerOfQuestion == choice.choice_type ? true : false}
                                                                     type="radio" 
                                                                     name="radio" 
-                                                                    key={key} onClick={(e) => this.setState({ answerOfQuestion : choice.choice_type  })} />
+                                                                    key={key} onClick={(e) => this.setState({ answerOfQuestion : choice.choice_type  })} 
+                                                                    disabled={this.state.result == true ? true : false} />
                                                                 {' '}
                                                                 {choice.choice_type}
                                                                 {'. '}
                                                                 {choice.choice_name}
+                                                                {' '}
+                                                                {
+                                                                    this.state.result == true ?
+                                                                        this.state.answerOfQuestion == choice.choice_type ? 
+                                                                            this.state.isCorrect == 'Y' ?  <i className="fa fa-check text-white"></i>
+                                                                            :
+                                                                            <i className="fa fa-times text-white"></i>
+                                                                        :
+                                                                        choice.choice_type == this.state.correctAnswer ? 
+                                                                            this.state.isCorrect == 'T' ?
+                                                                                <i className="fa fa-check text-white"></i>
+                                                                            :
+                                                                            ''
+                                                                        :
+                                                                        ''
+                                                                    :
+                                                                    ''
+                                                                }
                                                             </p>
                                                         )
                                                     })
                                                 :
-                                                <textarea
-                                                    height="250"
-                                                    width="250"
-                                                    value={this.state.answerOfQuestion}
-                                                ></textarea>
+                                                <div>
+                                                    <textarea
+                                                        className="w-100"
+                                                        style={{ height : '120px' }}
+                                                        value={this.state.answerOfQuestion}
+                                                        placeholder="Type the answer here..."
+                                                        onChange={(e) => this.setState({ answerOfQuestion : e.target.value })}
+                                                        disabled={this.state.result == true ? true : false}
+                                                    ></textarea>
+                                                    <p>
+                                                        {   this.state.isCorrect == 'T' 
+                                                                ? 'Your answer is incorrect'
+                                                            : 
+                                                            'Your answer is correct'
+                                                        }
+                                                        <br />
+                                                        {
+                                                            this.state.isCorrect == 'T' ?
+                                                                'Correct answer : '+this.state.correctAnswer    
+                                                            :
+                                                            ''
+                                                        }
+                                                    </p>
+                                                </div>
                                             :
                                             ''
                                         }
@@ -282,12 +364,20 @@ class QuizAnswer extends Component {
                                                 :
                                                 ''
                                             }
-                                            <button onClick={async() => await this.saveAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSave ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
+                                            {
+                                                this.state.result == false ?
+                                                    <button onClick={async() => await this.saveAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSave ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Save</button>
+                                                :
+                                                ''
+                                            }
                                             {
                                                 this.props.match.params.questionNumber < this.state.listOfNumber.length?
                                                         <button onClick={async() => await this.onPage('next')} className="btn btn-info ml-4"><i className="fa fa-arrow-right"></i> Next</button>
                                                 :
-                                                <button onClick={async() => await this.confirmSubmitAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSubmit ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Submit</button>
+                                                this.state.result == false ?
+                                                    <button onClick={async() => await this.confirmSubmitAnswer() } className={`btn btn-primary ml-4 ${ this.state.onSubmit ? 'disabled btn-progress' : '' } `}><i className="fa fa-save"></i> Submit</button>
+                                                :
+                                                ''
                                             }
                                         </div>
                                     </div>

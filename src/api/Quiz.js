@@ -85,11 +85,12 @@ export const getMyQuizEmpByQuiz = async(quizId, employeeId) => {
     return quiz.data;
 }
 
-export const getQuestionByQuizEmployee = async(quizEmployeeId, questionNumber) => {
+export const getQuestionByQuizEmployee = async(quizEmployeeId, questionNumber, result) => {
     axios.defaults.withCredentials = true;
     const quest = await axios.post(`${urlQuest}/quiz_employee`, {
         quiz_employee_id : quizEmployeeId,
-        question_number : questionNumber
+        question_number : questionNumber,
+        result : result
     });
     return quest.data;
 }

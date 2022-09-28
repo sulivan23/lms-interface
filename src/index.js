@@ -92,7 +92,7 @@ require("prismjs/themes/prism.css");
 require("izitoast/dist/css/iziToast.min.css");
 require("weathericons/css/weather-icons.min.css");
 require("weathericons/css/weather-icons-wind.min.css");
-window.Chart = require("chart.js/dist/Chart.min");
+// window.Chart = require("chart.js/dist/Chart.min");
 //
 // JS Libraies
 require("izitoast/dist/js/iziToast.min.js");

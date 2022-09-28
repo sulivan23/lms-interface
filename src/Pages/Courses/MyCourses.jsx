@@ -25,10 +25,10 @@ class MyCourses extends Component {
     }
 
     async handleMyCourse(status, courseId) {
-        if(status == 'In Progress') {
-            const firstLesson = await getFirstLesson(courseId);
-            this.props.history.push(`/home/learning/${courseId}/lesson/${firstLesson.data.id}`);
-        }
+        // if(status == 'In Progress') {
+        const firstLesson = await getFirstLesson(courseId);
+        this.props.history.push(`/home/learning/${courseId}/lesson/${firstLesson.data.id}`);
+        // }
     }
 
     async detailCourse(courseId){

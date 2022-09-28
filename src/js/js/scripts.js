@@ -1,6 +1,6 @@
 import $ from "jquery"
 import * as jQuery from "jquery"
-import Chart from "chart.js"
+import { Chart } from "chart.js"
 import Dropzone from "dropzone"
 import CodeMirror from "codemirror"
 

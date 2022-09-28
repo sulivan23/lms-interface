@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const url = "http://localhost:3001/key_performance"
+const urlReport = "http://localhost:3001/report";
 
 export const createKPI = async(data) => {
     axios.defaults.withCredentials = true;
@@ -30,4 +31,30 @@ export const deleteKPI = async(id) => {
     axios.defaults.withCredentials = true;
     const deleted = await axios.delete(`${url}/${id}`);
     return deleted.data;
+}
+
+export const reportDashboardEmployee = async(employeeId) => {
+    axios.defaults.withCredentials = true;
+    const report = await axios.post(`${urlReport}/dashboard`, {
+        employee_id : employeeId
+    });
+    return report.data;
+}
+
+export const reportKPI = async(organizationCode, employeeId) => {
+    axios.defaults.withCredentials = true;
+    const report = await axios.post(`${urlReport}/kpi`, {
+        organization_code : organizationCode,
+        employee_id : employeeId
+    });
+    return report.data;
+}
+
+export const reportCourse = async(organizationCode, employeeId) => {
+    axios.defaults.withCredentials = true;
+    const report = await axios.post(`${urlReport}/course`, {
+        organization_code : organizationCode,
+        employee_id : employeeId
+    });
+    return report.data;
 }

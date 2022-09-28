@@ -1,11 +1,11 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { reportKPI } from "../../api/KeyPerformance";
+import { reportCourse, reportKPI } from "../../api/KeyPerformance";
 import { getOrganization } from "../../api/Organization";
 import { getUsers, getUsersByOrg } from "../../api/Users";
 import moment from "moment";
 
-class ReportKeyPerformance extends Component {
+class ReportCourse extends Component {
 
     constructor(props){
         super(props);
@@ -41,7 +41,7 @@ class ReportKeyPerformance extends Component {
 
     async filterData() {
         this.setState({ onSubmitFilter : true });
-        const getReport = await reportKPI(this.state.filterOrg, this.state.filterEmp);
+        const getReport = await reportCourse(this.state.filterOrg, this.state.filterEmp);
         this.setState({ data : getReport.data });
         this.setState({ onSubmitFilter : false });
     }
@@ -51,12 +51,12 @@ class ReportKeyPerformance extends Component {
             <div className="main-content">
                 <section className="section">
                     <div className="section-header">
-                        <h1>Key Performance Indicator Reporting</h1>
+                        <h1>Course Reporting</h1>
                         <div className="section-header-breadcrumb">
                             <div className="breadcrumb-item active">
                                 <Link to="/home">Dashboard</Link>
                             </div>
-                            <div className="breadcrumb-item">KPI Reporting</div>
+                            <div className="breadcrumb-item">Course Reporting</div>
                         </div>
                     </div>
                     <div className="section-body">
@@ -115,14 +115,12 @@ class ReportKeyPerformance extends Component {
                                                     <tr>
                                                         <th>No</th>
                                                         <th>Name</th>
-                                                        <th>Score</th>
-                                                        <th>Target</th>
-                                                        <th>KPI Status</th>
-                                                        <th>Type</th>
                                                         <th>Organization</th>
-                                                        <th>Periode</th>
-                                                        <th>Tahun</th>
-                                                        <th>Tgl Generate</th>
+                                                        <th>Course Name</th>
+                                                        <th>Due Date</th>
+                                                        <th>Status</th>
+                                                        <th>Progress</th>
+                                                        <th>Enroll Date</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -137,15 +135,13 @@ class ReportKeyPerformance extends Component {
                                                             return (
                                                                 <tr key={key}>
                                                                     <td>{key+1}</td>
-                                                                    <td>{kpi.name}</td>
-                                                                    <td>{kpi.score}</td>
-                                                                    <td>{kpi.target}</td>
+                                                                    <td>{kpi.user.name}</td>
+                                                                    <td>{kpi.course.organization.organization_name}</td>
+                                                                    <td>{kpi.course.course_name}</td>
+                                                                    <td>{kpi.course.due_date}</td>
                                                                     <td>{kpi.status}</td>
-                                                                    <td>{kpi.type}</td>
-                                                                    <td>{kpi.organization}</td>
-                                                                    <td>{kpi.periode}</td>
-                                                                    <td>{kpi.tahun}</td>
-                                                                    <td>{moment(kpi.tgl_generate).format('D MMMM Y')}</td>
+                                                                    <td>{kpi.progress} %</td>
+                                                                    <td>{moment(kpi.createdAt).format('D MMMM Y')}</td>
                                                                 </tr>
                                                             )
                                                         })
@@ -164,4 +160,4 @@ class ReportKeyPerformance extends Component {
     }
 }
 
-export default ReportKeyPerformance;
+export default ReportCourse;
