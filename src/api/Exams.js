@@ -101,3 +101,11 @@ export const getResultExam = async(param) => {
     const result = await axios.post(`${url}/result`, param);
     return result.data;
 }
+
+export const getExamByOrg = async(organizationCode) => {
+    axios.defaults.withCredentials = true;
+    const exam = await axios.post(`${url}/org`, {
+        organization_code : organizationCode
+    });
+    return exam.data;
+}

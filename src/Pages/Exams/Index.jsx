@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import moment from "moment";
 import { Link } from "react-router-dom";
 import { getCourse, getCoursesByOrg } from "../../api/Courses";
-import { createExam, deleteExam, getExamById, getExams, updateExam } from "../../api/Exams";
+import { createExam, deleteExam, getExamById, getExamByOrg, getExams, updateExam } from "../../api/Exams";
 import $ from "jquery";
 import swal from "sweetalert";
 import iziToast from "izitoast";
@@ -82,7 +82,11 @@ class Exams extends Component {
     }
 
     async getExams() {
-        const exams = await getExams();
+        if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+            var exams = await getExams();
+        }else{
+            var exams = await getExamByOrg(Cookies.get('role'));
+        }
         this.setState({ examsData : exams.data });
     }
 

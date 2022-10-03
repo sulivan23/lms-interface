@@ -31,6 +31,7 @@ import ReportKeyPerformance from "./Pages/Reporting/KeyPerformance";
 import SettingKeyPerformance from "./Pages/Settings/KeyPerformance";
 import QuizContestAnswer from "./Pages/Contest/Quiz/QuizContestAnswer";
 import ReportCourse from "./Pages/Reporting/Course";
+import RolesPermission from "./Pages/Settings/RolesPermission";
 
 const history = React.lazy(() => import('./history'));
 
@@ -91,6 +92,7 @@ function App() {
               <Route path="/home/reporting/performance" exact component={ReportKeyPerformance} />
               {/* Settings */}
               <Route path="/home/settings/kpi" exact component={SettingKeyPerformance} />
+              <Route path="/home/settings/roles_permission" exact component={RolesPermission} />
               {/* 404 Not Found */}
               <Route path="*" component={Error404} />
             </Switch>

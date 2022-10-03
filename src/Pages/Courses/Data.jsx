@@ -8,6 +8,7 @@ import swal from "sweetalert";
 import { createCourse } from "../../api/Courses";
 import Cookies from "js-cookie";
 import { getOrganization, getOrganizationByCode } from "../../api/Organization";
+import { getPermission } from "../../api/Users";
 
 class CoursesData extends Component {   
     
@@ -25,6 +26,7 @@ class CoursesData extends Component {
             dueDate : '',
             idCourse : '',
             titleModal : 'Create Course',
+            permission : [],
             userData : {}
         }
     }
@@ -101,7 +103,16 @@ class CoursesData extends Component {
 
     async componentDidMount() {
         const { user } =  await getPersonalInfo();
+        const permission = await getPermission({
+            role : Cookies.get('role'),
+            type : 'Menu',
+            url : this.props.path
+        });
+        if(permission.data == null){
+            return this.props.history('/home/404')  
+        }
         this.setState({ userData : user });
+        this.setState({ permission : permission.data.permission.split(', ') });
         await this.Loading();
         await this.getData();
         $("#dataTable").DataTable({
@@ -175,9 +186,14 @@ class CoursesData extends Component {
                 <p className={`text-center${this.state.isLoading ? ' d-block' : ' d-none' }`}>
                     <i className="fa fa-spinner fa-spin"></i> Loading...
                 </p>
-                <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
+                {
+                    this.state.permission.includes('Create') ?
+                    <button onClick={async() => await this.initModal()} className="btn btn-primary mb-4"><i className="fa fa-plus"></i> 
                         &nbsp;Create Course
-                </button>
+                    </button>
+                    :
+                    ''
+                }
                 <table className="table table-striped" id="dataTable">
                     <thead>
                         <tr>
@@ -202,8 +218,18 @@ class CoursesData extends Component {
                                     <td>{ moment(course.createdAt).format('Y-MM-DD HH:mm:ss') }</td>
                                     <td>{ moment(course.updatedAt).format('Y-MM-DD HH:mm:ss') }</td>
                                     <td>
-                                        <button className="btn btn-primary ml-2 w-100" onClick={async() => await this.setState({ idCourse : course.id }) }>Update</button>
-                                        <button className="btn btn-danger ml-2 my-1 w-100"  onClick={async() => await this.deleteCourse(course.id) }>Delete</button>
+                                        {
+                                            this.state.permission.includes('Update') ?
+                                                <button className="btn btn-primary ml-2 w-100" onClick={async() => await this.setState({ idCourse : course.id }) }>Update</button>
+                                            :
+                                            ''
+                                        }
+                                        {
+                                            this.state.permission.includes('Delete') ?
+                                                <button className="btn btn-danger ml-2 my-1 w-100"  onClick={async() => await this.deleteCourse(course.id) }>Delete</button>
+                                            :
+                                            ''
+                                        }
                                     </td>
                                 </tr>
                             );

@@ -103,14 +103,14 @@ class KeyPerformance extends Component {
                 {
                     label: 'KPI Average Course (%)',
                     data: this.state.avgCoursePerMonth,
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: '#76D0FD',
+                    backgroundColor: '#064F73',
                 },
                 {
                     label: 'KPI Average Exam (Point)',
                     data: this.state.avgExamPerMonth,
-                    borderColor: 'blue',
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: '#FF6C6C',
+                    backgroundColor: '#E61D1D',
                 }
             ],
         }

@@ -100,3 +100,11 @@ export const getResultQuiz = async(param) => {
     const result = await axios.post(`${url}/result`, param);
     return result.data;
 }
+
+export const getQuizByOrg = async(organizationCode) => {
+    axios.defaults.withCredentials = true;
+    const quiz = await axios.post(`${url}/org`, {
+        organization_code : organizationCode
+    });
+    return quiz.data;
+}

@@ -7,7 +7,7 @@ import swal from "sweetalert";
 import iziToast from "izitoast";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import Cookies from "js-cookie";
-import { createQuiz, deleteQuiz, getQuiz, getQuizById, updateQuiz } from "../../api/Quiz";
+import { createQuiz, deleteQuiz, getQuiz, getQuizById, getQuizByOrg, updateQuiz } from "../../api/Quiz";
 import { getPermission } from "../../api/Users";
 
 class Quiz extends Component {
@@ -80,7 +80,11 @@ class Quiz extends Component {
     }
 
     async getQuiz() {
-        const quiz = await getQuiz();
+        if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+            var quiz = await getQuiz();
+        }else{
+            var quiz = await getQuizByOrg(this.state.userData.organization.organization_code);
+        }
         this.setState({ quizData : quiz.data });
     }
 

@@ -2,6 +2,7 @@ import axios from "axios"
 
 const url = 'http://localhost:3001/course';
 const urlLearning = 'http://localhost:3001/learning';
+const urlCert = 'http://localhost:3001/certificate';
 
 export const getCourse = async() => {
     axios.defaults.withCredentials = true;
@@ -65,4 +66,10 @@ export const getMyCourses = async(employeeId) => {
         employee_id : employeeId
     });
     return courses.data;
+}
+
+export const downloadCertificate = async(code) => {
+    axios.defaults.withCredentials = true;
+    const download = await axios.get(`${urlCert}/${code}`);
+    return download.data;
 }

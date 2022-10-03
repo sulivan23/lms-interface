@@ -34,11 +34,11 @@ const Header = () => {
               </a>
             </li>
           </ul>
-          <Search searchResultData={searchResultData} />
+          {/* <Search searchResultData={searchResultData} /> */}
         </form>
         <ul className="navbar-nav navbar-right">
-          <ToggleData data={EnvelopData} />
-          <ToggleData data={NotifyData} />
+          {/* <ToggleData data={EnvelopData} />
+          <ToggleData data={NotifyData} /> */}
 
           <UserDropdown userDetail={userDetail} />
         </ul>

@@ -170,15 +170,15 @@ export const userDetail = {
       title: "Profile",
     },
 
-    {
-      link: "/feature/activities",
-      icode: "fas fa-bolt",
-      title: "Activities",
-    },
-    {
-      link: "/feature/Settings",
-      icode: "fas fa-cog",
-      title: "Settings",
-    },
+    // {
+    //   link: "/feature/activities",
+    //   icode: "fas fa-bolt",
+    //   title: "Activities",
+    // },
+    // {
+    //   link: "/feature/Settings",
+    //   icode: "fas fa-cog",
+    //   title: "Settings",
+    // },
   ],
 };

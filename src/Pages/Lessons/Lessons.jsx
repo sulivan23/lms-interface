@@ -4,7 +4,7 @@ import iziToast from "izitoast";
 import swal from "sweetalert";
 import { getPersonalInfo, handleMessage } from "../../api/Helper";
 import moment from "moment";
-import { createLesson, deleteLesson, getLesson, getLessonById, getLessonContentByLesson, updateLesson } from "../../api/Lessons";
+import { createLesson, deleteLesson, getLesson, getLessonById, getLessonByOrg, getLessonContentByLesson, updateLesson } from "../../api/Lessons";
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
 import { getCourse, getCoursesByOrg } from "../../api/Courses";
@@ -71,7 +71,11 @@ class Lessons extends Component {
     }
 
     async getLesson() {
-        const lessons = await getLesson();
+        if(Cookies.get('role') == 'ADM' || Cookies.get('role') == 'HRD'){
+            var lessons = await getLesson();
+        }else{
+            var lessons = await getLessonByOrg(this.state.userData.organization.organization_code);
+        }
         this.setState({ lesson : lessons.data });
     }
 

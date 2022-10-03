@@ -1,7 +1,20 @@
+import Cookies from "js-cookie";
 import React, { Component } from "react";
 import { NavLink } from "react-router-dom";
 
 export class UserDropdown extends Component {
+
+  roleDescription(role) {
+    var arr = {
+      "CBT" : 'Contributor',
+      "ADM" : 'Administrator',
+      "HRD" : 'Human Resources',
+      "CMO" : 'User',
+      "SPV" : 'Supervisor'
+    }
+    return arr[role];
+  }
+
   render() {
     const { userDetail } = this.props;
     return (
@@ -17,12 +30,12 @@ export class UserDropdown extends Component {
             className="rounded-circle mr-1"
           />
           <div className="d-sm-none d-lg-inline-block">
-            Hi, {userDetail.userName}
+            Hi, {Cookies.get('name')}
           </div>
         </a>
         <div className="dropdown-menu dropdown-menu-right">
           <div className="dropdown-title">
-            Logged in {userDetail.logTime} ago
+            Your login as {this.roleDescription(Cookies.get('role'))}
           </div>
 
           {userDetail.datas.map((data, idata) => {
@@ -42,7 +55,7 @@ export class UserDropdown extends Component {
           })}
 
           <div className="dropdown-divider" />
-          <a
+          {/* <a
             href="#"
             className="dropdown-item has-icon text-danger"
             // onClick={() => {
@@ -52,7 +65,7 @@ export class UserDropdown extends Component {
             // }}
           >
             <i className={userDetail.logoutIcon} /> {userDetail.logoutTitle}
-          </a>
+          </a> */}
         </div>
       </li>
     );

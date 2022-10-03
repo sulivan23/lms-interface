@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { getMyCourses } from "../../api/Courses";
+import { downloadCertificate, getMyCourses } from "../../api/Courses";
 import { getPersonalInfo } from "../../api/Helper";
 import moment from "moment";
 import $ from "jquery";
@@ -34,6 +34,10 @@ class MyCourses extends Component {
     async detailCourse(courseId){
         this.setState({ courseId : courseId });
     }
+
+    // async downloadCertificate(code) {
+    //     await downloadCertificate(code);
+    // }
 
     render() {
         return(
@@ -105,6 +109,18 @@ class MyCourses extends Component {
                                                         myCourse.status == 'In Progress' ? 'Continue Learning' :  'You Have Finishied This Course'
                                                     }
                                                 </button>
+                                                {
+                                                    myCourse.certificate != null ?
+                                                        <a 
+                                                            className="btn btn-primary my-1 w-100"
+                                                            href={`http://localhost:3001/certificate/${myCourse.certificate.code}`}
+                                                            target="_blank"
+                                                        >
+                                                            <i className="fa fa-download"></i> Download Certificate
+                                                        </a>
+                                                    :
+                                                    ''
+                                                }
                                             </div>
                                         </article>
                                     )

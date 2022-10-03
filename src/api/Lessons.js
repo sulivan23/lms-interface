@@ -96,3 +96,11 @@ export const getFirstLesson = async(courseId) => {
     const firstLesson = await axios.get(`${urlLesson}/first_lesson/${courseId}`);
     return firstLesson.data;
 }
+
+export const getLessonByOrg = async(organizationCode) => {
+    axios.defaults.withCredentials = true;
+    const lesson = await axios.post(`${urlLesson}/org`, {
+        organization_code : organizationCode
+    });
+    return lesson.data;
+}

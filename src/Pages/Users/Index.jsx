@@ -56,7 +56,7 @@ class Users extends Component {
     async componentDidUpdate(prevProps, prevState){
         if(prevState.userId != this.state.userId && this.state.userId != ''){
             const data = await getUser(this.state.userId);
-            const user = data.userData.data;
+            const user = data.data;
             await this.initModal();
             this.setState({
                 name : user.name,
